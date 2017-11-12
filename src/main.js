@@ -9,7 +9,7 @@ var glm = require("gl-matrix");
 var Space3D = require("./space-3d.js");
 var Skybox = require("./skybox.js");
 
-var resolution = 1024;
+var resolution = 512;
 
 window.onload = function() {
 
