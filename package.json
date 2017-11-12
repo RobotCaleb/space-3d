@@ -13,7 +13,9 @@
     "rng": "^0.2.2",
     "gulp-browserify": "^0.5.1"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "color-convert": "^1.9.1"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

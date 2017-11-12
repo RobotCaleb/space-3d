@@ -26,7 +26,10 @@ window.onload = function() {
         this.stars = params.stars === undefined ? true : params.stars === "true";
         this.sun = params.sun === undefined ? true : params.sun === "true";
         this.nebulae = params.nebulae === undefined ? true : params.nebulae === "true";
-        this.resolution = parseInt(params.resolution) || 1024;
+        this.nebulaOpacity = params.nebulaOpacity === undefined ? 100 : parseInt(params.nebulaOpacity);
+        this.noiseScale = params.nebulaOpacity === undefined ? 50 : parseFloat(params.noiseScale);
+        this.nebulaBrightness = params.nebulaBrightness === undefined ? 50 : parseInt(params.nebulaBrightness);
+        this.resolution = parseInt(params.resolution) || 512;
         this.animationSpeed = params.animationSpeed === undefined ? 1.0 : parseFloat(params.animationSpeed);
         this.unifiedTexture = params.unifiedTexture === undefined ? true : params.unifiedTexture === "true";
     };
@@ -43,6 +46,9 @@ window.onload = function() {
     gui.add(menu, "stars").name("Bright stars").onChange(renderTextures);
     gui.add(menu, "sun").name("Sun").onChange(renderTextures);
     gui.add(menu, "nebulae").name("Nebulae").onChange(renderTextures);
+    gui.add(menu, "nebulaOpacity", 0, 100).name("nebulaOpacity").onChange(renderTextures);
+    gui.add(menu, "nebulaBrightness", 0, 100).name("nebulaBrightness").onChange(renderTextures);
+    gui.add(menu, "noiseScale", 0, 100).name("noiseScale").onChange(renderTextures);
     gui.add(menu, "resolution", [256, 512, 1024, 2048, 4096]).name("Resolution").onChange(renderTextures);
     gui.add(menu, "unifiedTexture").name("Unified texture");
     gui.add(menu, "animationSpeed", 0, 10).name("Animation speed");
@@ -96,6 +102,9 @@ window.onload = function() {
             nebulae: menu.nebulae,
             resolution: menu.resolution,
             animationSpeed: menu.animationSpeed,
+            nebulaOpacity: menu.nebulaOpacity,
+            nebulaBrightness: menu.nebulaBrightness,
+            noiseScale: menu.noiseScale
         });
     }
 
@@ -123,6 +132,9 @@ window.onload = function() {
             nebulae: menu.nebulae,
             unifiedTexture: menu.unifiedTexture,
             resolution: menu.resolution,
+            nebulaOpacity: menu.nebulaOpacity/100.0,
+            nebulaBrightness: menu.nebulaBrightness/100.0,
+            noiseScale: 4.0 * ((menu.noiseScale/100.0) - 0.5)
         });
         skybox.setTextures(textures);
         var canvas = document.getElementById("texture-canvas");

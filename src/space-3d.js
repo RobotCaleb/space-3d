@@ -10,6 +10,8 @@ var webgl = require("./webgl.js");
 var util = require("./util.js");
 var rng = require("rng");
 
+var colorConvert = require("color-convert");
+
 var NSTARS = 100000;
 
 module.exports = function() {
@@ -27,7 +29,7 @@ module.exports = function() {
         self.gl.blendFuncSeparate(self.gl.SRC_ALPHA, self.gl.ONE_MINUS_SRC_ALPHA, self.gl.ZERO, self.gl.ONE);
 
         // Load the programs.
-        self.pNebula = util.loadProgram(self.gl, fs.readFileSync(__dirname + "/glsl/nebula.glsl", "utf8"));
+        self.pNebula = util.loadProgram(self.gl, fs.readFileSync(__dirname + "/glsl/nebula3.glsl", "utf8"));
         self.pPointStars = util.loadProgram(self.gl, fs.readFileSync(__dirname + "/glsl/point-stars.glsl", "utf8"));
         self.pStar = util.loadProgram(self.gl, fs.readFileSync(__dirname + "/glsl/star.glsl", "utf8"));
         self.pSun = util.loadProgram(self.gl, fs.readFileSync(__dirname + "/glsl/sun.glsl", "utf8"));
@@ -94,19 +96,47 @@ module.exports = function() {
         // Initialize the nebula parameters.
         var rand = new rng.MT(hashcode(params.seed) + 2000);
         var nebulaParams = [];
+
         while (params.nebulae) {
-            nebulaParams.push({
-                scale: rand.random() * 0.5 + 0.25,
-                color: [rand.random(), rand.random(), rand.random()],
-                intensity: rand.random() * 0.2 + 0.9,
-                falloff: rand.random() * 3.0 + 3.0,
-                offset: [rand.random() * 2000 - 1000, rand.random() * 2000 - 1000, rand.random() * 2000 - 1000],
-            });
-            if (rand.random() < 0.5) {
+
+            var color = colorConvert.hsl.rgb.raw(rand.random()*360.0, rand.random() * 50 + 20, rand.random() * 25 + 25);
+            color = color.map(function(v) { return v/255.0; });
+
+            // if(rand.random() < 0.1) {
+            //     // close nebula
+            //     nebulaParams.push({
+            //         scale: rand.random() * 0.5 + 0.25,
+            //         color: color,
+            //         intensity: rand.random() * 0.2 + 0.9,
+            //         falloff: rand.random() * 4.0 + 4.0,
+            //         rot: [rand.random() * 6.0 - 3.0, rand.random() * 6.0 - 3.0, rand.random() * 6.0 - 3.0],
+            //         offset: [rand.random() * 3 - 1.5, rand.random() * 3.0- 1.5, rand.random() * 3.0 - 1.5],
+            //         //offset: [rand.random() * 2000 - 1000, rand.random() * 2000 - 1000, rand.random() * 2000 - 1000],
+
+            //     });
+            // } else {
+                // far nebula
+                nebulaParams.push({
+                    scale: rand.random() * 0.5 + 0.25,
+                    color: color,
+                    brightness: params.nebulaBrightness,
+                    opacity: params.nebulaOpacity,
+                    noiseScale: params.noiseScale,
+                    density: rand.random() * 0.25,
+                    falloff: rand.random() * 3.0 + 3.0,
+                    rot: [rand.random() * 6.0 - 3.0, rand.random() * 6.0 - 3.0, rand.random() * 6.0 - 3.0],
+                    offset: [rand.random() * 10.0 - 5.0, rand.random() * 10.0 - 5.0, rand.random() * 10.0 - 5.0],
+                    //offset: [rand.random() * 2000 - 1000, rand.random() * 2000 - 1000, rand.random() * 2000 - 1000],
+
+                });
+
+            // }
+
+            if (nebulaParams.length >= 2 || rand.random() < 0.5) {
                 break;
             }
         }
-
+console.log("Nebula params " + nebulaParams.length);
         // Initialize the sun parameters.
         var rand = new rng.MT(hashcode(params.seed) + 4000);
         var sunParams = [];
@@ -158,7 +188,7 @@ module.exports = function() {
         for (var i = 0; i < keys.length; i++) {
 
             // Clear the context.
-            self.gl.clearColor(0,0,0,1);
+            self.gl.clearColor(0.05,0.10,0.10,1);
             self.gl.clear(self.gl.COLOR_BUFFER_BIT);
 
             // Look in the direection for this texture.
@@ -199,10 +229,14 @@ module.exports = function() {
                 self.pNebula.setUniform("uModel", "Matrix4fv", false, model);
                 self.pNebula.setUniform("uView", "Matrix4fv", false, view);
                 self.pNebula.setUniform("uProjection", "Matrix4fv", false, projection);
-                self.pNebula.setUniform("uScale", "1f", p.scale);
+                self.pNebula.setUniform("uDensity", "1f", p.density);
+                // self.pNebula.setUniform("uScale", "1f", p.scale);
                 self.pNebula.setUniform("uColor", "3fv", p.color);
-                self.pNebula.setUniform("uIntensity", "1f", p.intensity);
-                self.pNebula.setUniform("uFalloff", "1f", p.falloff);
+                self.pNebula.setUniform("uOpacity", "1f", p.opacity);
+                self.pNebula.setUniform("uBrightness", "1f", p.brightness);
+                self.pNebula.setUniform("uNoiseScale", "1f", p.noiseScale);
+                // self.pNebula.setUniform("uFalloff", "1f", p.falloff);
+                self.pNebula.setUniform("uRot", "3fv", p.rot);
                 self.pNebula.setUniform("uOffset", "3fv", p.offset);
                 self.rNebula.render();
 
