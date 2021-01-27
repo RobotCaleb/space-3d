@@ -19137,27 +19137,29 @@ var Skybox = require("./skybox.js");
 
 var resolution = 512;
 
-window.onload = function() {
+window.onload = function () {
   var params = qs.parse(location.hash);
 
-  var ControlsMenu = function() {
-      this.seed = params.seed || generateRandomSeed();
-      this.randomSeed = function() {
-          this.seed = generateRandomSeed();
-          renderTextures();
-      };
-      this.fov = parseInt(params.fov) || 80;
-      this.pointStars = params.pointStars === undefined ? true : params.pointStars === "true";
-      this.stars = params.stars === undefined ? true : params.stars === "true";
-      this.sun = params.sun === undefined ? true : params.sun === "true";
-      this.nebulae = params.nebulae === undefined ? true : params.nebulae === "true";
-      this.nebulaOpacity = params.nebulaOpacity === undefined ? 100 : parseInt(params.nebulaOpacity);
-      this.noiseScale = params.nebulaOpacity === undefined ? 50 : parseFloat(params.noiseScale);
-      this.nebulaBrightness = params.nebulaBrightness === undefined ? 50 : parseInt(params.nebulaBrightness);
-      this.resolution = parseInt(params.resolution) || 512;
-      this.animationSpeed = params.animationSpeed === undefined ? 1.0 : parseFloat(params.animationSpeed);
-      this.unifiedTexture = params.unifiedTexture === undefined ? true : params.unifiedTexture === "true";
-    this.saveSkybox = function() {
+  var ControlsMenu = function () {
+    this.seed = params.seed || generateRandomSeed();
+    this.randomSeed = function () {
+      this.seed = generateRandomSeed();
+      renderTextures();
+    };
+    this.fov = parseInt(params.fov) || 80;
+    this.pointStars = params.pointStars === undefined ? true : params.pointStars === "true";
+    this.pointStarsPercent = params.pointStarsPercent === undefined ? 50.0 : parseFloat(params.pointStarsPercent);
+    this.stars = params.stars === undefined ? true : params.stars === "true";
+    this.starsAmount = params.starsAmount === undefined ? 25.0 : parseFloat(params.starsAmount);
+    this.sun = params.sun === undefined ? true : params.sun === "true";
+    this.nebulae = params.nebulae === undefined ? true : params.nebulae === "true";
+    this.nebulaOpacity = params.nebulaOpacity === undefined ? 100 : parseInt(params.nebulaOpacity);
+    this.noiseScale = params.nebulaOpacity === undefined ? 50 : parseFloat(params.noiseScale);
+    this.nebulaBrightness = params.nebulaBrightness === undefined ? 50 : parseInt(params.nebulaBrightness);
+    this.resolution = parseInt(params.resolution) || 512;
+    this.animationSpeed = params.animationSpeed === undefined ? 1.0 : parseFloat(params.animationSpeed);
+    this.url = window.location.href.toString();
+    this.saveSkybox = function () {
       const zip = new JSZip();
       for (const name of ["front", "back", "left", "right", "top", "bottom"]) {
         const canvas = document.getElementById(`texture-${name}`);
@@ -19166,13 +19168,13 @@ window.onload = function() {
       }
       if (this.resolution <= 2048) {
         const cubemapData = this._saveCubemap().split(",")[1];
-        zip.file('cubemap.png', cubemapData, { base64: true });    
+        zip.file('cubemap.png', cubemapData, { base64: true });
       }
       zip.generateAsync({ type: "blob" }).then(blob => {
         saveAs(blob, "skybox.zip");
       });
     };
-    this._saveCubemap = function() {
+    this._saveCubemap = function () {
       const cubemapCanvas = document.getElementById('texture-cubemap');
       const left = document.getElementById('texture-left');
       const top = document.getElementById('texture-top');
@@ -19180,7 +19182,7 @@ window.onload = function() {
       const bottom = document.getElementById('texture-bottom');
       const right = document.getElementById('texture-right');
       const back = document.getElementById('texture-back');
-      
+
       // set size of canvas depending on resolution
       var context = cubemapCanvas.getContext('2d');
       context.canvas.width = this.resolution * 4;
@@ -19193,8 +19195,8 @@ window.onload = function() {
       context.drawImage(bottom, this.resolution, this.resolution * 2);
       context.drawImage(right, this.resolution * 2, this.resolution);
       context.drawImage(back, this.resolution * 3, this.resolution);
-    
-      return cubemapCanvas.toDataURL("image/png");      
+
+      return cubemapCanvas.toDataURL("image/png");
     };
   };
 
@@ -19203,32 +19205,35 @@ window.onload = function() {
     autoPlace: false,
     width: 320
   });
-    gui.add(menu, "seed").name("Seed").listen().onFinishChange(renderTextures);
-    gui.add(menu, "randomSeed").name("Randomize seed");
-    gui.add(menu, "fov", 10, 150, 1).name("Field of view °");
-    gui.add(menu, "pointStars").name("Point stars").onChange(renderTextures);
-    gui.add(menu, "stars").name("Bright stars").onChange(renderTextures);
-    gui.add(menu, "sun").name("Sun").onChange(renderTextures);
-    gui.add(menu, "nebulae").name("Nebulae").onChange(renderTextures);
-    gui.add(menu, "nebulaOpacity", 0, 100).name("nebulaOpacity").onChange(renderTextures);
-    gui.add(menu, "nebulaBrightness", 0, 100).name("nebulaBrightness").onChange(renderTextures);
-    gui.add(menu, "noiseScale", 0, 100).name("noiseScale").onChange(renderTextures);
-    gui.add(menu, "resolution", [256, 512, 1024, 2048, 4096]).name("Resolution").onChange(renderTextures);
-    gui.add(menu, "unifiedTexture").name("Unified texture");
-    gui.add(menu, "animationSpeed", 0, 10).name("Animation speed");
+  gui.add(menu, "seed").name("Seed").listen().onFinishChange(renderTextures);
+  gui.add(menu, "randomSeed").name("Randomize seed");
+  gui.add(menu, "fov", 10, 150, 1).name("Field of view °");
+  gui.add(menu, "pointStars").name("Point stars").onFinishChange(renderTextures);
+  gui.add(menu, "pointStarsPercent").name("Point stars %").onFinishChange(renderTextures);
+  gui.add(menu, "stars").name("Bright stars").onFinishChange(renderTextures);
+  gui.add(menu, "starsAmount").name("Bright stars Amount").onFinishChange(renderTextures);
+  gui.add(menu, "sun").name("Sun").onFinishChange(renderTextures);
+  gui.add(menu, "nebulae").name("Nebulae").onFinishChange(renderTextures);
+  gui.add(menu, "nebulaOpacity", 0, 100).name("nebulaOpacity").onFinishChange(renderTextures);
+  gui.add(menu, "nebulaBrightness", 0, 100).name("nebulaBrightness").onFinishChange(renderTextures);
+  gui.add(menu, "noiseScale", 0, 100).name("noiseScale").onFinishChange(renderTextures);
+  gui.add(menu, "resolution", [256, 512, 1024, 2048, 4096]).name("Resolution").onFinishChange(renderTextures);
+  gui.add(menu, "animationSpeed", 0, 10).name("Animation speed");
+  gui.add(menu, "saveSkybox").name("Download skybox");
+  gui.add(menu, "url").name("URL").listen();
 
-    document.body.appendChild(gui.domElement);
-    gui.domElement.style.position = "fixed";
-    gui.domElement.style.left = "16px";
-    gui.domElement.style.top = "272px";
+  document.body.appendChild(gui.domElement);
+  gui.domElement.style.position = "fixed";
+  gui.domElement.style.left = "16px";
+  gui.domElement.style.top = "272px";
 
-    function hideGui() {
-        gui.domElement.style.display = "none";
-    }
+  function hideGui() {
+    gui.domElement.style.display = "none";
+  }
 
-    function showGui() {
-        gui.domElement.style.display = "block";
-    }
+  function showGui() {
+    gui.domElement.style.display = "block";
+  }
 
   function hideSplit() {
     document.getElementById("texture-left").style.display = "none";
@@ -19248,31 +19253,31 @@ window.onload = function() {
     document.getElementById("texture-back").style.display = "block";
   }
 
-  function setQueryString() {
-      var queryString = qs.stringify({
-          seed: menu.seed,
-          fov: menu.fov,
-          pointStars: menu.pointStars,
-          stars: menu.stars,
-          sun: menu.sun,
-          nebulae: menu.nebulae,
-          resolution: menu.resolution,
-          animationSpeed: menu.animationSpeed,
-          nebulaOpacity: menu.nebulaOpacity,
-          nebulaBrightness: menu.nebulaBrightness,
-          noiseScale: menu.noiseScale
-      });
+  function setUrl() {
+    var queryString = qs.stringify({
+      seed: menu.seed,
+      fov: menu.fov,
+      pointStars: menu.pointStars,
+      pointStarsPercent: menu.pointStarsPercent,
+      stars: menu.stars,
+      starsAmount: menu.starsAmount,
+      sun: menu.sun,
+      nebulae: menu.nebulae,
+      resolution: menu.resolution,
+      animationSpeed: menu.animationSpeed,
+      nebulaOpacity: menu.nebulaOpacity,
+      nebulaBrightness: menu.nebulaBrightness,
+      noiseScale: menu.noiseScale
+    });
 
-      try {
-        history.replaceState(null, "", "#" + queryString);
-      } catch (e) {
-        location.hash = queryString;
-      }
+    var url = new URL(window.location.href);
+    url.hash = queryString;
+    menu.url = url.toString();
   }
 
   var hideControls = false;
 
-  window.onkeypress = function(e) {
+  window.onkeypress = function (e) {
     if (e.charCode == 32) {
       hideControls = !hideControls;
     }
@@ -19287,41 +19292,42 @@ window.onload = function() {
 
   function renderTextures() {
     var textures = space.render({
-        seed: menu.seed,
-        pointStars: menu.pointStars,
-        stars: menu.stars,
-        sun: menu.sun,
-        nebulae: menu.nebulae,
-        unifiedTexture: menu.unifiedTexture,
-        resolution: menu.resolution,
-        nebulaOpacity: menu.nebulaOpacity/100.0,
-        nebulaBrightness: menu.nebulaBrightness/100.0,
-        noiseScale: 4.0 * ((menu.noiseScale/100.0) - 0.5)
+      seed: menu.seed,
+      pointStars: menu.pointStars,
+      pointStarsPercent: menu.pointStarsPercent / 100.0,
+      stars: menu.stars,
+      starsAmount: menu.starsAmount,
+      sun: menu.sun,
+      nebulae: menu.nebulae,
+      resolution: menu.resolution,
+      nebulaOpacity: menu.nebulaOpacity / 100.0,
+      nebulaBrightness: menu.nebulaBrightness / 100.0,
+      noiseScale: 4.0 * ((menu.noiseScale / 100.0) - 0.5)
     });
     skybox.setTextures(textures);
     var canvas = document.getElementById("texture-canvas");
     canvas.width = 4 * menu.resolution;
     canvas.height = 3 * menu.resolution;
     var ctx = canvas.getContext("2d");
-    ctx.drawImage(textures.left,   menu.resolution * 0, menu.resolution * 1);
-    ctx.drawImage(textures.right,  menu.resolution * 2, menu.resolution * 1);
-    ctx.drawImage(textures.front,  menu.resolution * 1, menu.resolution * 1);
-    ctx.drawImage(textures.back,   menu.resolution * 3, menu.resolution * 1);
-    ctx.drawImage(textures.top,    menu.resolution * 1, menu.resolution * 0);
+    ctx.drawImage(textures.left, menu.resolution * 0, menu.resolution * 1);
+    ctx.drawImage(textures.right, menu.resolution * 2, menu.resolution * 1);
+    ctx.drawImage(textures.front, menu.resolution * 1, menu.resolution * 1);
+    ctx.drawImage(textures.back, menu.resolution * 3, menu.resolution * 1);
+    ctx.drawImage(textures.top, menu.resolution * 1, menu.resolution * 0);
     ctx.drawImage(textures.bottom, menu.resolution * 1, menu.resolution * 2);
 
     function drawIndividual(source, targetid) {
-        var canvas = document.getElementById(targetid);
-        canvas.width = canvas.height = menu.resolution;
-        var ctx = canvas.getContext("2d");
-        ctx.drawImage(source, 0, 0);
+      var canvas = document.getElementById(targetid);
+      canvas.width = canvas.height = menu.resolution;
+      var ctx = canvas.getContext("2d");
+      ctx.drawImage(source, 0, 0);
     }
 
-    drawIndividual(textures.left,   "texture-left");
-    drawIndividual(textures.right,  "texture-right");
-    drawIndividual(textures.front,  "texture-front");
-    drawIndividual(textures.back,   "texture-back");
-    drawIndividual(textures.top,    "texture-top");
+    drawIndividual(textures.left, "texture-left");
+    drawIndividual(textures.right, "texture-right");
+    drawIndividual(textures.front, "texture-front");
+    drawIndividual(textures.back, "texture-back");
+    drawIndividual(textures.top, "texture-top");
     drawIndividual(textures.bottom, "texture-bottom");
   }
 
@@ -19362,9 +19368,9 @@ window.onload = function() {
 
     skybox.render(view, projection);
 
-    requestAnimationFrame(render);
+    setUrl();
 
-    setQueryString();
+    requestAnimationFrame(render);
   }
 
   render();
@@ -19496,256 +19502,258 @@ var colorConvert = require("color-convert");
 
 var NSTARS = 100000;
 
-module.exports = function() {
-    var self = this;
+module.exports = function () {
+  var self = this;
 
-    self.initialize = function() {
+  self.initialize = function () {
 
-        // Initialize the offscreen rendering canvas.
-        self.canvas = document.createElement("canvas");
+    // Initialize the offscreen rendering canvas.
+    self.canvas = document.createElement("canvas");
 
-        // Initialize the gl context.
-        self.gl = self.canvas.getContext("webgl");
-        self.gl.enable(self.gl.BLEND);
-        self.gl.blendFuncSeparate(self.gl.SRC_ALPHA, self.gl.ONE_MINUS_SRC_ALPHA, self.gl.ZERO, self.gl.ONE);
+    // Initialize the gl context.
+    self.gl = self.canvas.getContext("webgl");
+    self.gl.enable(self.gl.BLEND);
+    self.gl.blendFuncSeparate(self.gl.SRC_ALPHA, self.gl.ONE_MINUS_SRC_ALPHA, self.gl.ZERO, self.gl.ONE);
 
-        // Load the programs.
-        self.pNebula = util.loadProgram(self.gl, "// TODO:\n// checkbox for shadowing\n// density controls\n// brightness controls\n\n#version 100\nprecision highp float;\n\nuniform mat4 uModel;\nuniform mat4 uView;\nuniform mat4 uProjection;\n\nattribute vec3 aPosition;\nvarying vec3 pos;\n\nvoid main() {\n    gl_Position = uProjection * uView * uModel * vec4(aPosition, 1);\n    pos = (uModel * vec4(aPosition, 1)).xyz;\n}\n\n\n__split__\n\n#version 100\nprecision highp float;\n\nuniform vec3 uColor;\nuniform vec3 uOffset;\nuniform vec3 uRot;\n\nuniform float uDensity;\nuniform float uOpacity;\nuniform float uBrightness;\n\nuniform float uNoiseScale;\n\n\nvarying vec3 pos;\n\n\n// \"Dusty nebula 4\" by Duke\n// https://www.shadertoy.com/view/MsVXWW\n//-------------------------------------------------------------------------------------\n// Based on \"Dusty nebula 3\" (https://www.shadertoy.com/view/lsVSRW) \n// and \"Protoplanetary disk\" (https://www.shadertoy.com/view/MdtGRl) \n// otaviogood's \"Alien Beacon\" (https://www.shadertoy.com/view/ld2SzK)\n// and Shane's \"Cheap Cloud Flythrough\" (https://www.shadertoy.com/view/Xsc3R4) shaders\n// Some ideas came from other shaders from this wonderful site\n// Press 1-2-3 to zoom in and zoom out.\n// License: Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License\n//-------------------------------------------------------------------------------------\n\n// #define ROTATION\n\n\n#define DITHERING\n\n\n\n// 6qx0x8z096k0 - wow\n\n#define TONEMAPPING\n\n// #define SHADOWING\n\n//-------------------\n#define pi 3.14159265\n#define R(p, a) p=cos(a)*p+sin(a)*vec2(p.y, -p.x)\n\n// // iq's noise\n// float noise( in vec3 x )\n// {\n//     vec3 p = floor(x);\n//     vec3 f = fract(x);\n// \tf = f*f*(3.0-2.0*f);\n// \tvec2 uv = (p.xy+vec2(37.0,17.0)*p.z) + f.xy;\n// \tvec2 rg = textureLod( iChannel0, (uv+ 0.5)/256.0, 0.0 ).yx;\n// \treturn 1. - 0.82*mix( rg.x, rg.y, f.z );\n// }\n\n__noise4d__\n\nfloat noise(vec3 p) {\n    return cnoise(vec4(p*1000.0, 0)) ;\n}\n\n\nfloat rand(vec2 co)\n{\n\treturn fract(sin(dot(co*0.123,vec2(12.9898,78.233))) * 43758.5453);\n}\n\n//=====================================\n// otaviogood's noise from https://www.shadertoy.com/view/ld2SzK\n//--------------------------------------------------------------\n// This spiral noise works by successively adding and rotating sin waves while increasing frequency.\n// It should work the same on all computers since it's not based on a hash function like some other noises.\n// It can be much faster than other noise functions if you're ok with some repetition.\nconst float nudge = 0.739513;\t// size of perpendicular vector\nfloat normalizer = 1.0 / sqrt(1.0 + nudge*nudge);\t// pythagorean theorem on that perpendicular to maintain scale\n\nconst float iTime = 0.5;\n\nfloat SpiralNoiseC(vec3 p)\n{\n    float n = 0.0;\t// noise amount\n    float iter = 1.0;\n    for (int i = 0; i < 8; i++)\n    {\n        // add sin and cos scaled inverse with the frequency\n        n += -abs(sin(p.y*iter) + cos(p.x*iter)) / iter;\t// abs for a ridged look\n        // rotate by adding perpendicular and scaling down\n        p.xy += vec2(p.y, -p.x) * nudge;\n        p.xy *= normalizer;\n        // rotate on other axis\n        p.xz += vec2(p.z, -p.x) * nudge;\n        p.xz *= normalizer;\n        // increase the frequency\n        iter *= 1.733733;\n    }\n    return n;\n}\n\nfloat SpiralNoise3D(vec3 p)\n{\n    float n = 0.0;\n    float iter = 1.0;\n    for (int i = 0; i < 4; i++)\n    {\n        n += (sin(p.y*iter) + cos(p.x*iter)) / iter;\n        p.xz += vec2(p.z, -p.x) * nudge;\n        p.xz *= normalizer;\n        iter *= 1.33733;\n    }\n    return n;\n}\n//p.zxy*0.5123\nfloat NebulaNoise(vec3 p)\n{\n   float final = p.y + 4.5;\n    final -= SpiralNoiseC(p.xyz);   // mid-range noise\n    final += SpiralNoiseC(p.zxy*0.1123 +100.0)*4.0;   // large scale features\n    final -= SpiralNoise3D(p);   // more large scale features, but 3d\n\n    return final;\n}\n\nfloat map(vec3 p) \n{\n\t#ifdef ROTATION\n\tR(p.xz, iMouse.x*0.008*pi+iTime*0.1);\n\t#endif\n    \n\tfloat NebNoise = abs(NebulaNoise(p*pow(2.0, uNoiseScale)*2.0)*0.5);\n    \n\treturn NebNoise+0.03;\n}\n//--------------------------------------------------------------\nconst float eps = 0.0000001;\n\nvec3 rgb2hsv(vec3 c)\n{\n    vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);\n    vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));\n    vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));\n\n    float d = q.x - min(q.w, q.y);\n    float e = 1.0e-10;\n    return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);\n}\n\nvec3 hsv2rgb(vec3 c)\n{\n    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);\n    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);\n    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);\n}\n\n\nvec3 rgb2hsl( vec3 col )\n{\n    float minc = min( col.r, min(col.g, col.b) );\n    float maxc = max( col.r, max(col.g, col.b) );\n    vec3  mask = step(col.grr,col.rgb) * step(col.bbg,col.rgb);\n    vec3 h = mask * (vec3(0.0,2.0,4.0) + (col.gbr-col.brg)/(maxc-minc + eps)) / 6.0;\n    return vec3( fract( 1.0 + h.x + h.y + h.z ),              // H\n                 (maxc-minc)/(1.0-abs(minc+maxc-1.0) + eps),  // S\n                 (minc+maxc)*0.5 );                           // L\n}\n\n\nvec3 hsl2rgb( in vec3 c )\n{\n    vec3 rgb = clamp( abs(mod(c.x*6.0+vec3(0.0,4.0,2.0),6.0)-3.0)-1.0, 0.0, 1.0 );\n    return c.z + c.y * (rgb-0.5)*(1.0-abs(2.0*c.z-1.0));\n}\n\n\n// assign color to the media\nvec3 computeColor( float density, float radius )\n{\n\t// color based on density alone, gives impression of occlusion within\n\t// the media\n//1l75k29oumn4\n\n\t// vec3 result = mix( col3, col4, density );\n\n    \n //    col2.x += 1.0;\n //    col2.y -= 0.5;\n //    col2 = clamp(col2, 0.0, 1.0);\n //    col2 = hsv2rgb(col2);\n\n\t// // color added to the media\n\t// vec3 colCenter = 8.*uColor;   //vec3(0.8,1.0,1.0);\n\t// vec3 colEdge = 1.0*col2; //vec3(0.48,0.53,0.5);\n\t// result *= mix( colCenter, colEdge, min( (radius+.05)/.9, 1.15 ) );\n\n    vec3 col2 = rgb2hsv(uColor);\n    col2.x -= density * 0.3 - radius * 0.1;\n    //col2.y -= density * 0.5;\n    col2.z += density * 0.5;\n    col2.yz = clamp(col2.yz, 0.0, 1.0);\n    col2.x = mod(col2.x, 1.0);\n\n     vec3 result = hsv2rgb( col2 );\n     //mix( col3, col4, density );\n\n    \n\n    // color added to the media\n    vec3 colCenter = mix(uColor, vec3(3.0, 3.0, 2.5), 0.5);\n    //5.*vec3(1.0,1.0,0.8);\n    vec3 colEdge = mix(uColor, vec3(0.35, 0.25, 0.35), 0.5);\n    //1.0*vec3(0.5, 0.5, 0.5);\n    //vec3(0.48,0.53,0.5);\n    result *= mix( colCenter, colEdge, min( (radius+.05)/.9, 1.15 ) );\n    \n\treturn result;\n}\n\nbool RaySphereIntersect(vec3 org, vec3 dir, out float near, out float far)\n{\n\tfloat b = dot(dir, org);\n\tfloat c = dot(org, org) - 36.;\n\tfloat delta = b*b - c;\n\tif( delta < 0.0) \n\t\treturn false;\n\tfloat deltasqrt = sqrt(delta);\n\tnear = -b - deltasqrt;\n\tfar = -b + deltasqrt;\n\treturn far > 0.0;\n}\n\n// Applies the filmic curve from John Hable's presentation\n// More details at : http://filmicgames.com/archives/75\nvec3 ToneMapFilmicALU(vec3 _color)\n{\n\t_color = max(vec3(0), _color - vec3(0.004));\n\t_color = (_color * (6.2*_color + vec3(0.5))) / (_color * (6.2 * _color + vec3(1.7)) + vec3(0.06));\n\n    // vec3 col2 = rgb2hsv(_color);\n\n    // col2.y -= 0.1;\n    // col2.z -= 0.1;\n\n    // col2.yz = clamp(col2.yz, 0.0, 1.0);\n\n\n    //  vec3 result = hsv2rgb( col2 );\n\n\treturn _color;\n}\n\n\nfloat RayMarchLight( vec3 ro, vec3 rd, float seedOffs )\n{  \n\n\n    // t: length of the ray\n    // d: distance function\n    float d=1., t=0.;\n    \n    const float h = 0.15;\n   \n    vec4 sum = vec4(0.0);\n   \n    float min_dist=0.0, max_dist=length(ro);\n    \n    float alpha = 1.0;\n    #ifdef DITHERING\n        //vec2 seed = rd.xy / 128.0;\n        vec2 seed = vec2(0);\n        seed.x = cnoise(vec4(rd.xyz, 0)) + seedOffs;\n        seed.y = cnoise(vec4(rd.zyx, 0)) - seedOffs;\n    #endif \n\n    t = min_dist*step(t,min_dist);\n    float density = 0.0;\n    \n    // raymarch loop\n    for (int i=0; i<200; i++) \n    {\n     \n        vec3 pos = ro + t*rd;\n  \n        // Loop break conditions.\n        if( t>max_dist) break;\n        \n        // evaluate distance function\n        float d = map(pos);\n               \n        // change this string to control density \n        d = max(d,0.01+uDensity);\n        \n        // point light calculations\n        vec3 ldst = vec3(0.0)-pos;\n        float lDist = max(length(ldst), 0.001);\n      \n        if (d<h) \n        {\n           density += 2. * (h-d)*3./(lDist*lDist);\n        }\n      \n        density += 0.4/(lDist*lDist); \n\n       \n        // enforce minimum stepsize\n        d = max(d, 0.04); \n        #ifdef DITHERING\n        // add in noise to reduce banding and create fuzz\n        d=abs(d)*(.8+0.2*rand(seed*vec2(i)));\n        #endif \n        \n        // trying to optimize step size near the camera and near the light source\n        t += max(d * 0.1 * max(min(length(ldst),length(ro)),1.0), 0.02);\n\n    }\n\n    return density;\n}\n\n//3u8y6eojbwo0\nvec4 RayMarchNebula(vec3 rd, vec3 ro, float seedOffs) \n{\n\n    const float KEY_1 = 49.5/256.0;\n    const float KEY_2 = 50.5/256.0;\n    const float KEY_3 = 51.5/256.0;\n    float key = KEY_3;\n\n\n\n    R(rd.yz, -pi*uRot.x);\n    R(rd.xz, pi*uRot.y);\n    R(ro.yz, -pi*uRot.x);\n    R(ro.xz, pi*uRot.y);    \n\n    #ifdef DITHERING\n        //vec2 seed = rd.xy / 128.0;\n        vec2 seed = vec2(0);\n        seed.x = cnoise(vec4(rd.xyz, 0)) + seedOffs;\n        seed.y = cnoise(vec4(rd.zyx, 0)) - seedOffs;\n    #endif \n    \n    // t: length of the ray\n    // d: distance function\n    float d=1., t=0.;\n    \n    const float h = 0.15;\n   \n    vec4 sum = vec4(0.0);\n   \n    float min_dist=0.5, max_dist=15.0;\n    \n    float alpha = 0.0;\n    float density = 0.;\n    \n    if(RaySphereIntersect(ro, rd, min_dist, max_dist))\n    {\n       \n    t = min_dist*step(t,min_dist);\n   \n    // raymarch loop\n    for (int i=0; i<200; i++) \n    {\n        vec3 pos = ro + t*rd;\n  \n        // Loop break conditions.\n        if( t>max_dist) break;\n        \n        // evaluate distance function\n        float d = map(pos);\n               \n        // change this string to control density \n        d = max(d,0.01+uDensity);\n        \n        // point light calculations\n        vec3 ldst = vec3(0.0)-pos;\n        float lDist = max(length(ldst)*0.6, 0.001);\n\n        // star in center\n        //vec3 lightColor=vec3(1.0,0.7,0.25)*uBrightness;\n\n        vec3 lightColor = rgb2hsl(uColor);\n\n        lightColor.x += 0.3333;\n        lightColor.y == 0.25;\n        lightColor.z += 0.25;\n        lightColor.yz = clamp(lightColor.yz, 0.0, 1.0);\n        lightColor.x = mod(lightColor.x, 1.0);\n\n        lightColor = hsv2rgb( lightColor ) * uBrightness * 0.8;\n\n        vec3 nebulaColor=uColor*0.5;\n        sum.rgb+=(lightColor/(lDist*lDist*20.)); // star itself and bloom around the light\n        alpha += (0.01/lDist*lDist);\n        if (d<h) \n        {\n\n            density += (h-d)*2./(lDist*lDist);  \n\n            sum.rgb+=(nebulaColor*uBrightness / exp( density * 0.5 )/(lDist*lDist)); // star itself and bloom around the light\n\n            float td = density + RayMarchLight(pos, -pos, seedOffs);\n            \n            float shadowedFactor = 1.0 / (exp( td * 0.15 )) / (lDist*lDist);\n            sum.rgb += lightColor * (0.2 * shadowedFactor);\n\n            alpha += (0.01*(h-d)/lDist*lDist*lDist) + 0.01 * shadowedFactor;\n        }\n        \n        density += 0.2*uDensity/(lDist*lDist); \n        \n        // enforce minimum stepsize\n        d = max(d, 0.04); \n      \n        #ifdef DITHERING\n        // add in noise to reduce banding and create fuzz\n        d=abs(d)*(.8+0.2*rand(seed*vec2(i)));\n        #endif \n        \n        // trying to optimize step size near the camera and near the light source\n        t += max(d * 0.1 * max(min(length(ldst),length(ro)), 1.0), 0.02);\n\n    }\n        \n\n   \n    \n    // simple scattering\n    //sum *= 1. / exp( ld * 0.2 ) * 0.6;\n\n        \n    sum = clamp( sum, 0.0, 1.0 );\n   \n    sum.xyz = sum.xyz*sum.xyz*(3.0-2.0*sum.xyz);\n    sum.w = uOpacity * clamp(alpha, 0.0, 1.0);\n    }\n    \n\n    #ifdef TONEMAPPING\n        return vec4(ToneMapFilmicALU(sum.xyz), sum.w);\n    #else\n        return sum;\n    #endif\n}\n\nvoid main()\n{  \n    // ro: ray origin\n    // rd: direction of the ray\n    vec3 rd = normalize(pos);\n    //normalize(vec3((gl_FragCoord.xy-0.5*iResolution.xy)/iResolution.y, 1.));\n    vec3 ro = vec3(0,0,-0.1) + uOffset;\n\n    vec4 col1 = RayMarchNebula(rd, ro, 0.0);\n    vec4 col2 = RayMarchNebula(rd, ro, 0.01);\n    vec4 col3 = RayMarchNebula(rd, ro, -0.01);\n    vec4 col4 = RayMarchNebula(rd, ro, -0.03);\n\n    gl_FragColor = (col1 + col2 + col3 + col4) * 0.25;\n\n}");
-        self.pPointStars = util.loadProgram(self.gl, "#version 100\nprecision highp float;\n\nuniform mat4 uModel;\nuniform mat4 uView;\nuniform mat4 uProjection;\n\nattribute vec3 aPosition;\nattribute vec3 aColor;\n\nvarying vec3 color;\n\nvoid main() {\n    gl_Position = uProjection * uView * uModel * vec4(aPosition, 1);\n    color = aColor;\n}\n\n\n__split__\n\n\n#version 100\nprecision highp float;\n\n\nvarying vec3 color;\n\nvoid main() {\n    gl_FragColor = vec4(color + vec3(0.25, 0.35, 0.35), 1.0) ;\n\n}\n");
-        self.pStar = util.loadProgram(self.gl, "#version 100\nprecision highp float;\n\nuniform mat4 uModel;\nuniform mat4 uView;\nuniform mat4 uProjection;\n\nattribute vec3 aPosition;\nvarying vec3 pos;\n\nvoid main() {\n    gl_Position = uProjection * uView * uModel * vec4(aPosition, 1);\n    pos = (uModel * vec4(aPosition, 1)).xyz;\n}\n\n\n__split__\n\n\n#version 100\nprecision highp float;\n\nuniform vec3 uPosition;\nuniform vec3 uColor;\nuniform float uSize;\nuniform float uFalloff;\n\nvarying vec3 pos;\n\nvoid main() {\n    vec3 posn = normalize(pos);\n    float d = 1.0 - clamp(dot(posn, normalize(uPosition)), 0.0, 1.0);\n    float i = exp(-(d - uSize) * uFalloff);\n    float o = clamp(i, 0.0, 1.0);\n    gl_FragColor = vec4(uColor + i, o);\n\n}\n");
-        self.pSun = util.loadProgram(self.gl, "#version 100\nprecision highp float;\n\nuniform mat4 uModel;\nuniform mat4 uView;\nuniform mat4 uProjection;\n\nattribute vec3 aPosition;\nvarying vec3 pos;\n\nvoid main() {\n    gl_Position = uProjection * uView * uModel * vec4(aPosition, 1);\n    pos = (uModel * vec4(aPosition, 1)).xyz;\n}\n\n\n__split__\n\n\n#version 100\nprecision highp float;\n\nuniform vec3 uPosition;\nuniform vec3 uColor;\nuniform float uSize;\nuniform float uFalloff;\n\nvarying vec3 pos;\n\nvoid main() {\n    vec3 posn = normalize(pos);\n    float d = clamp(dot(posn, normalize(uPosition)), 0.0, 1.0);\n    float c = smoothstep(1.0 - uSize * 32.0, 1.0 - uSize, d);\n    c += pow(d, uFalloff) * 0.5;\n    vec3 color = mix(uColor, vec3(1,1,1), c);\n    gl_FragColor = vec4(color, c);\n\n}\n");
+    // Load the programs.
+    self.pNebula = util.loadProgram(self.gl, "// TODO:\n// checkbox for shadowing\n// density controls\n// brightness controls\n\n#version 100\nprecision highp float;\n\nuniform mat4 uModel;\nuniform mat4 uView;\nuniform mat4 uProjection;\n\nattribute vec3 aPosition;\nvarying vec3 pos;\n\nvoid main() {\n    gl_Position = uProjection * uView * uModel * vec4(aPosition, 1);\n    pos = (uModel * vec4(aPosition, 1)).xyz;\n}\n\n\n__split__\n\n#version 100\nprecision highp float;\n\nuniform vec3 uColor;\nuniform vec3 uOffset;\nuniform vec3 uRot;\n\nuniform float uDensity;\nuniform float uOpacity;\nuniform float uBrightness;\n\nuniform float uNoiseScale;\n\n\nvarying vec3 pos;\n\n\n// \"Dusty nebula 4\" by Duke\n// https://www.shadertoy.com/view/MsVXWW\n//-------------------------------------------------------------------------------------\n// Based on \"Dusty nebula 3\" (https://www.shadertoy.com/view/lsVSRW) \n// and \"Protoplanetary disk\" (https://www.shadertoy.com/view/MdtGRl) \n// otaviogood's \"Alien Beacon\" (https://www.shadertoy.com/view/ld2SzK)\n// and Shane's \"Cheap Cloud Flythrough\" (https://www.shadertoy.com/view/Xsc3R4) shaders\n// Some ideas came from other shaders from this wonderful site\n// Press 1-2-3 to zoom in and zoom out.\n// License: Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License\n//-------------------------------------------------------------------------------------\n\n// #define ROTATION\n\n\n#define DITHERING\n\n\n\n// 6qx0x8z096k0 - wow\n\n#define TONEMAPPING\n\n// #define SHADOWING\n\n//-------------------\n#define pi 3.14159265\n#define R(p, a) p=cos(a)*p+sin(a)*vec2(p.y, -p.x)\n\n// // iq's noise\n// float noise( in vec3 x )\n// {\n//     vec3 p = floor(x);\n//     vec3 f = fract(x);\n// \tf = f*f*(3.0-2.0*f);\n// \tvec2 uv = (p.xy+vec2(37.0,17.0)*p.z) + f.xy;\n// \tvec2 rg = textureLod( iChannel0, (uv+ 0.5)/256.0, 0.0 ).yx;\n// \treturn 1. - 0.82*mix( rg.x, rg.y, f.z );\n// }\n\n__noise4d__\n\nfloat noise(vec3 p) {\n    return cnoise(vec4(p*1000.0, 0)) ;\n}\n\n\nfloat rand(vec2 co)\n{\n\treturn fract(sin(dot(co*0.123,vec2(12.9898,78.233))) * 43758.5453);\n}\n\n//=====================================\n// otaviogood's noise from https://www.shadertoy.com/view/ld2SzK\n//--------------------------------------------------------------\n// This spiral noise works by successively adding and rotating sin waves while increasing frequency.\n// It should work the same on all computers since it's not based on a hash function like some other noises.\n// It can be much faster than other noise functions if you're ok with some repetition.\nconst float nudge = 0.739513;\t// size of perpendicular vector\nfloat normalizer = 1.0 / sqrt(1.0 + nudge*nudge);\t// pythagorean theorem on that perpendicular to maintain scale\n\nconst float iTime = 0.5;\n\nfloat SpiralNoiseC(vec3 p)\n{\n    float n = 0.0;\t// noise amount\n    float iter = 1.0;\n    for (int i = 0; i < 8; i++)\n    {\n        // add sin and cos scaled inverse with the frequency\n        n += -abs(sin(p.y*iter) + cos(p.x*iter)) / iter;\t// abs for a ridged look\n        // rotate by adding perpendicular and scaling down\n        p.xy += vec2(p.y, -p.x) * nudge;\n        p.xy *= normalizer;\n        // rotate on other axis\n        p.xz += vec2(p.z, -p.x) * nudge;\n        p.xz *= normalizer;\n        // increase the frequency\n        iter *= 1.733733;\n    }\n    return n;\n}\n\nfloat SpiralNoise3D(vec3 p)\n{\n    float n = 0.0;\n    float iter = 1.0;\n    for (int i = 0; i < 4; i++)\n    {\n        n += (sin(p.y*iter) + cos(p.x*iter)) / iter;\n        p.xz += vec2(p.z, -p.x) * nudge;\n        p.xz *= normalizer;\n        iter *= 1.33733;\n    }\n    return n;\n}\n//p.zxy*0.5123\nfloat NebulaNoise(vec3 p)\n{\n   float final = p.y + 4.5;\n    final -= SpiralNoiseC(p.xyz);   // mid-range noise\n    final += SpiralNoiseC(p.zxy*0.1123 +100.0)*4.0;   // large scale features\n    final -= SpiralNoise3D(p);   // more large scale features, but 3d\n\n    return final;\n}\n\nfloat map(vec3 p) \n{\n\t#ifdef ROTATION\n\tR(p.xz, iMouse.x*0.008*pi+iTime*0.1);\n\t#endif\n    \n\tfloat NebNoise = abs(NebulaNoise(p*pow(2.0, uNoiseScale)*2.0)*0.5);\n    \n\treturn NebNoise+0.03;\n}\n//--------------------------------------------------------------\nconst float eps = 0.0000001;\n\nvec3 rgb2hsv(vec3 c)\n{\n    vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);\n    vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));\n    vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));\n\n    float d = q.x - min(q.w, q.y);\n    float e = 1.0e-10;\n    return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);\n}\n\nvec3 hsv2rgb(vec3 c)\n{\n    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);\n    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);\n    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);\n}\n\n\nvec3 rgb2hsl( vec3 col )\n{\n    float minc = min( col.r, min(col.g, col.b) );\n    float maxc = max( col.r, max(col.g, col.b) );\n    vec3  mask = step(col.grr,col.rgb) * step(col.bbg,col.rgb);\n    vec3 h = mask * (vec3(0.0,2.0,4.0) + (col.gbr-col.brg)/(maxc-minc + eps)) / 6.0;\n    return vec3( fract( 1.0 + h.x + h.y + h.z ),              // H\n                 (maxc-minc)/(1.0-abs(minc+maxc-1.0) + eps),  // S\n                 (minc+maxc)*0.5 );                           // L\n}\n\n\nvec3 hsl2rgb( in vec3 c )\n{\n    vec3 rgb = clamp( abs(mod(c.x*6.0+vec3(0.0,4.0,2.0),6.0)-3.0)-1.0, 0.0, 1.0 );\n    return c.z + c.y * (rgb-0.5)*(1.0-abs(2.0*c.z-1.0));\n}\n\n\n// assign color to the media\nvec3 computeColor( float density, float radius )\n{\n\t// color based on density alone, gives impression of occlusion within\n\t// the media\n//1l75k29oumn4\n\n\t// vec3 result = mix( col3, col4, density );\n\n    \n //    col2.x += 1.0;\n //    col2.y -= 0.5;\n //    col2 = clamp(col2, 0.0, 1.0);\n //    col2 = hsv2rgb(col2);\n\n\t// // color added to the media\n\t// vec3 colCenter = 8.*uColor;   //vec3(0.8,1.0,1.0);\n\t// vec3 colEdge = 1.0*col2; //vec3(0.48,0.53,0.5);\n\t// result *= mix( colCenter, colEdge, min( (radius+.05)/.9, 1.15 ) );\n\n    vec3 col2 = rgb2hsv(uColor);\n    col2.x -= density * 0.3 - radius * 0.1;\n    //col2.y -= density * 0.5;\n    col2.z += density * 0.5;\n    col2.yz = clamp(col2.yz, 0.0, 1.0);\n    col2.x = mod(col2.x, 1.0);\n\n     vec3 result = hsv2rgb( col2 );\n     //mix( col3, col4, density );\n\n    \n\n    // color added to the media\n    vec3 colCenter = mix(uColor, vec3(3.0, 3.0, 2.5), 0.5);\n    //5.*vec3(1.0,1.0,0.8);\n    vec3 colEdge = mix(uColor, vec3(0.35, 0.25, 0.35), 0.5);\n    //1.0*vec3(0.5, 0.5, 0.5);\n    //vec3(0.48,0.53,0.5);\n    result *= mix( colCenter, colEdge, min( (radius+.05)/.9, 1.15 ) );\n    \n\treturn result;\n}\n\nbool RaySphereIntersect(vec3 org, vec3 dir, out float near, out float far)\n{\n\tfloat b = dot(dir, org);\n\tfloat c = dot(org, org) - 36.;\n\tfloat delta = b*b - c;\n\tif( delta < 0.0) \n\t\treturn false;\n\tfloat deltasqrt = sqrt(delta);\n\tnear = -b - deltasqrt;\n\tfar = -b + deltasqrt;\n\treturn far > 0.0;\n}\n\n// Applies the filmic curve from John Hable's presentation\n// More details at : http://filmicgames.com/archives/75\nvec3 ToneMapFilmicALU(vec3 _color)\n{\n\t_color = max(vec3(0), _color - vec3(0.004));\n\t_color = (_color * (6.2*_color + vec3(0.5))) / (_color * (6.2 * _color + vec3(1.7)) + vec3(0.06));\n\n    // vec3 col2 = rgb2hsv(_color);\n\n    // col2.y -= 0.1;\n    // col2.z -= 0.1;\n\n    // col2.yz = clamp(col2.yz, 0.0, 1.0);\n\n\n    //  vec3 result = hsv2rgb( col2 );\n\n\treturn _color;\n}\n\n\nfloat RayMarchLight( vec3 ro, vec3 rd, float seedOffs )\n{  \n\n\n    // t: length of the ray\n    // d: distance function\n    float d=1., t=0.;\n    \n    const float h = 0.15;\n   \n    vec4 sum = vec4(0.0);\n   \n    float min_dist=0.0, max_dist=length(ro);\n    \n    float alpha = 1.0;\n    #ifdef DITHERING\n        //vec2 seed = rd.xy / 128.0;\n        vec2 seed = vec2(0);\n        seed.x = cnoise(vec4(rd.xyz, 0)) + seedOffs;\n        seed.y = cnoise(vec4(rd.zyx, 0)) - seedOffs;\n    #endif \n\n    t = min_dist*step(t,min_dist);\n    float density = 0.0;\n    \n    // raymarch loop\n    for (int i=0; i<200; i++) \n    {\n     \n        vec3 pos = ro + t*rd;\n  \n        // Loop break conditions.\n        if( t>max_dist) break;\n        \n        // evaluate distance function\n        float d = map(pos);\n               \n        // change this string to control density \n        d = max(d,0.01+uDensity);\n        \n        // point light calculations\n        vec3 ldst = vec3(0.0)-pos;\n        float lDist = max(length(ldst), 0.001);\n      \n        if (d<h) \n        {\n           density += 2. * (h-d)*3./(lDist*lDist);\n        }\n      \n        density += 0.4/(lDist*lDist); \n\n       \n        // enforce minimum stepsize\n        d = max(d, 0.04); \n        #ifdef DITHERING\n        // add in noise to reduce banding and create fuzz\n        d=abs(d)*(.8+0.2*rand(seed*vec2(i)));\n        #endif \n        \n        // trying to optimize step size near the camera and near the light source\n        t += max(d * 0.1 * max(min(length(ldst),length(ro)),1.0), 0.02);\n\n    }\n\n    return density;\n}\n\n//3u8y6eojbwo0\nvec4 RayMarchNebula(vec3 rd, vec3 ro, float seedOffs) \n{\n\n    const float KEY_1 = 49.5/256.0;\n    const float KEY_2 = 50.5/256.0;\n    const float KEY_3 = 51.5/256.0;\n    float key = KEY_3;\n\n\n\n    R(rd.yz, -pi*uRot.x);\n    R(rd.xz, pi*uRot.y);\n    R(ro.yz, -pi*uRot.x);\n    R(ro.xz, pi*uRot.y);    \n\n    #ifdef DITHERING\n        //vec2 seed = rd.xy / 128.0;\n        vec2 seed = vec2(0);\n        seed.x = cnoise(vec4(rd.xyz, 0)) + seedOffs;\n        seed.y = cnoise(vec4(rd.zyx, 0)) - seedOffs;\n    #endif \n    \n    // t: length of the ray\n    // d: distance function\n    float d=1., t=0.;\n    \n    const float h = 0.15;\n   \n    vec4 sum = vec4(0.0);\n   \n    float min_dist=0.5, max_dist=15.0;\n    \n    float alpha = 0.0;\n    float density = 0.;\n    \n    if(RaySphereIntersect(ro, rd, min_dist, max_dist))\n    {\n       \n    t = min_dist*step(t,min_dist);\n   \n    // raymarch loop\n    for (int i=0; i<200; i++) \n    {\n        vec3 pos = ro + t*rd;\n  \n        // Loop break conditions.\n        if( t>max_dist) break;\n        \n        // evaluate distance function\n        float d = map(pos);\n               \n        // change this string to control density \n        d = max(d,0.01+uDensity);\n        \n        // point light calculations\n        vec3 ldst = vec3(0.0)-pos;\n        float lDist = max(length(ldst)*0.6, 0.001);\n\n        // star in center\n        //vec3 lightColor=vec3(1.0,0.7,0.25)*uBrightness;\n\n        vec3 lightColor = rgb2hsl(uColor);\n\n        lightColor.x += 0.3333;\n        lightColor.y == 0.25;\n        lightColor.z += 0.25;\n        lightColor.yz = clamp(lightColor.yz, 0.0, 1.0);\n        lightColor.x = mod(lightColor.x, 1.0);\n\n        lightColor = hsv2rgb( lightColor ) * uBrightness * 0.8;\n\n        vec3 nebulaColor=uColor*0.5;\n        sum.rgb+=(lightColor/(lDist*lDist*20.)); // star itself and bloom around the light\n        alpha += (0.01/lDist*lDist);\n        if (d<h) \n        {\n\n            density += (h-d)*2./(lDist*lDist);  \n\n            sum.rgb+=(nebulaColor*uBrightness / exp( density * 0.5 )/(lDist*lDist)); // star itself and bloom around the light\n\n            float td = density + RayMarchLight(pos, -pos, seedOffs);\n            \n            float shadowedFactor = 1.0 / (exp( td * 0.15 )) / (lDist*lDist);\n            sum.rgb += lightColor * (0.2 * shadowedFactor);\n\n            alpha += (0.01*(h-d)/lDist*lDist*lDist) + 0.01 * shadowedFactor;\n        }\n        \n        density += 0.2*uDensity/(lDist*lDist); \n        \n        // enforce minimum stepsize\n        d = max(d, 0.04); \n      \n        #ifdef DITHERING\n        // add in noise to reduce banding and create fuzz\n        d=abs(d)*(.8+0.2*rand(seed*vec2(i)));\n        #endif \n        \n        // trying to optimize step size near the camera and near the light source\n        t += max(d * 0.1 * max(min(length(ldst),length(ro)), 1.0), 0.02);\n\n    }\n        \n\n   \n    \n    // simple scattering\n    //sum *= 1. / exp( ld * 0.2 ) * 0.6;\n\n        \n    sum = clamp( sum, 0.0, 1.0 );\n   \n    sum.xyz = sum.xyz*sum.xyz*(3.0-2.0*sum.xyz);\n    sum.w = uOpacity * clamp(alpha, 0.0, 1.0);\n    }\n    \n\n    #ifdef TONEMAPPING\n        return vec4(ToneMapFilmicALU(sum.xyz), sum.w);\n    #else\n        return sum;\n    #endif\n}\n\nvoid main()\n{  \n    // ro: ray origin\n    // rd: direction of the ray\n    vec3 rd = normalize(pos);\n    //normalize(vec3((gl_FragCoord.xy-0.5*iResolution.xy)/iResolution.y, 1.));\n    vec3 ro = vec3(0,0,-0.1) + uOffset;\n\n    vec4 col1 = RayMarchNebula(rd, ro, 0.0);\n    vec4 col2 = RayMarchNebula(rd, ro, 0.01);\n    vec4 col3 = RayMarchNebula(rd, ro, -0.01);\n    vec4 col4 = RayMarchNebula(rd, ro, -0.03);\n\n    gl_FragColor = (col1 + col2 + col3 + col4) * 0.25;\n\n}");
+    self.pPointStars = util.loadProgram(self.gl, "#version 100\nprecision highp float;\n\nuniform mat4 uModel;\nuniform mat4 uView;\nuniform mat4 uProjection;\n\nattribute vec3 aPosition;\nattribute vec3 aColor;\n\nvarying vec3 color;\n\nvoid main() {\n    gl_Position = uProjection * uView * uModel * vec4(aPosition, 1);\n    color = aColor;\n}\n\n\n__split__\n\n\n#version 100\nprecision highp float;\n\n\nvarying vec3 color;\n\nvoid main() {\n    gl_FragColor = vec4(color + vec3(0.25, 0.35, 0.35), 1.0) ;\n\n}\n");
+    self.pStar = util.loadProgram(self.gl, "#version 100\nprecision highp float;\n\nuniform mat4 uModel;\nuniform mat4 uView;\nuniform mat4 uProjection;\n\nattribute vec3 aPosition;\nvarying vec3 pos;\n\nvoid main() {\n    gl_Position = uProjection * uView * uModel * vec4(aPosition, 1);\n    pos = (uModel * vec4(aPosition, 1)).xyz;\n}\n\n\n__split__\n\n\n#version 100\nprecision highp float;\n\nuniform vec3 uPosition;\nuniform vec3 uColor;\nuniform float uSize;\nuniform float uFalloff;\n\nvarying vec3 pos;\n\nvoid main() {\n    vec3 posn = normalize(pos);\n    float d = 1.0 - clamp(dot(posn, normalize(uPosition)), 0.0, 1.0);\n    float i = exp(-(d - uSize) * uFalloff);\n    float o = clamp(i, 0.0, 1.0);\n    gl_FragColor = vec4(uColor + i, o);\n\n}\n");
+    self.pSun = util.loadProgram(self.gl, "#version 100\nprecision highp float;\n\nuniform mat4 uModel;\nuniform mat4 uView;\nuniform mat4 uProjection;\n\nattribute vec3 aPosition;\nvarying vec3 pos;\n\nvoid main() {\n    gl_Position = uProjection * uView * uModel * vec4(aPosition, 1);\n    pos = (uModel * vec4(aPosition, 1)).xyz;\n}\n\n\n__split__\n\n\n#version 100\nprecision highp float;\n\nuniform vec3 uPosition;\nuniform vec3 uColor;\nuniform float uSize;\nuniform float uFalloff;\n\nvarying vec3 pos;\n\nvoid main() {\n    vec3 posn = normalize(pos);\n    float d = clamp(dot(posn, normalize(uPosition)), 0.0, 1.0);\n    float c = smoothstep(1.0 - uSize * 32.0, 1.0 - uSize, d);\n    c += pow(d, uFalloff) * 0.5;\n    vec3 color = mix(uColor, vec3(1,1,1), c);\n    gl_FragColor = vec4(color, c);\n\n}\n");
 
-        // Create the point stars renderable.
-        var rand = new rng.MT(hashcode("best seed ever") + 5000);
-        var position = new Float32Array(18 * NSTARS);
-        var color = new Float32Array(18 * NSTARS);
-        for (var i = 0; i < NSTARS; i++) {
-            var size = 0.05;
-            var pos = glm.vec3.random(glm.vec3.create(), 1.0);
-            var star = buildStar(size, pos, 128.0, rand);
-            position.set(star.position, i * 18);
-            color.set(star.color, i * 18);
-        }
-        var attribs = webgl.buildAttribs(self.gl, {aPosition:3, aColor:3});
-        attribs.aPosition.buffer.set(position);
-        attribs.aColor.buffer.set(color);
-        var count = position.length / 9;
-        self.rPointStars = new webgl.Renderable(self.gl, self.pPointStars, attribs, count);
+    // Create the point stars renderable.
+    var rand = new rng.MT(hashcode("best seed ever") + 5000);
+    var position = new Float32Array(18 * NSTARS);
+    var color = new Float32Array(18 * NSTARS);
+    for (var i = 0; i < NSTARS; i++) {
+      var size = 0.05;
+      var pos = glm.vec3.random(glm.vec3.create(), 1.0);
+      var star = buildStar(size, pos, 128.0, rand);
+      position.set(star.position, i * 18);
+      color.set(star.color, i * 18);
+    }
+    var attribs = webgl.buildAttribs(self.gl, { aPosition: 3, aColor: 3 });
+    attribs.aPosition.buffer.set(position);
+    attribs.aColor.buffer.set(color);
+    var count = position.length / 9;
+    self.rPointStars = new webgl.Renderable(self.gl, self.pPointStars, attribs, count);
 
-        // Create the nebula, sun, and star renderables.
-        self.rNebula = buildBox(self.gl, self.pNebula);
-        self.rSun = buildBox(self.gl, self.pSun);
-        self.rStar = buildBox(self.gl, self.pStar);
+    // Create the nebula, sun, and star renderables.
+    self.rNebula = buildBox(self.gl, self.pNebula);
+    self.rSun = buildBox(self.gl, self.pSun);
+    self.rStar = buildBox(self.gl, self.pStar);
+  };
+
+  self.render = function (params) {
+
+    // We'll be returning a map of direction to texture.
+    var textures = {};
+
+    // Handle changes to resolution.
+    self.canvas.width = self.canvas.height = params.resolution;
+    self.gl.viewport(0, 0, params.resolution, params.resolution);
+
+    // Initialize the point star parameters.
+    var rand = new rng.MT(hashcode(params.seed) + 1000);
+    var pStarParams = [];
+    while (params.pointStars) {
+      pStarParams.push({
+        rotation: randomRotation(rand),
+      });
+      if (rand.random() < 0.2) {
+        break;
+      }
+    }
+    var percent = params.pointStarsPercent;
+    var remain = Math.floor(pStarParams.length * percent);
+    pStarParams = pStarParams.slice(0, remain);
+
+    // Initialize the star parameters.
+    var rand = new rng.MT(hashcode(params.seed) + 3000);
+    var starParams = [];
+    if (params.stars) {
+      for (var i = 0; i < params.starsAmount; i++) {
+        starParams.push({
+          pos: randomVec3(rand),
+          color: [1, 1, 1],
+          size: 0.0,
+          falloff: rand.random() * Math.pow(2, 20) + Math.pow(2, 20),
+        });
+      }
+    }
+
+    // Initialize the nebula parameters.
+    var rand = new rng.MT(hashcode(params.seed) + 2000);
+    var nebulaParams = [];
+
+    while (params.nebulae) {
+
+      var color = colorConvert.hsl.rgb.raw(rand.random() * 360.0, rand.random() * 50 + 20, rand.random() * 25 + 25);
+      color = color.map(function (v) { return v / 255.0; });
+
+      // if(rand.random() < 0.1) {
+      //     // close nebula
+      //     nebulaParams.push({
+      //         scale: rand.random() * 0.5 + 0.25,
+      //         color: color,
+      //         intensity: rand.random() * 0.2 + 0.9,
+      //         falloff: rand.random() * 4.0 + 4.0,
+      //         rot: [rand.random() * 6.0 - 3.0, rand.random() * 6.0 - 3.0, rand.random() * 6.0 - 3.0],
+      //         offset: [rand.random() * 3 - 1.5, rand.random() * 3.0- 1.5, rand.random() * 3.0 - 1.5],
+      //         //offset: [rand.random() * 2000 - 1000, rand.random() * 2000 - 1000, rand.random() * 2000 - 1000],
+
+      //     });
+      // } else {
+      // far nebula
+      nebulaParams.push({
+        scale: rand.random() * 0.5 + 0.25,
+        color: color,
+        brightness: params.nebulaBrightness,
+        opacity: params.nebulaOpacity,
+        noiseScale: params.noiseScale,
+        density: rand.random() * 0.25,
+        falloff: rand.random() * 3.0 + 3.0,
+        rot: [rand.random() * 6.0 - 3.0, rand.random() * 6.0 - 3.0, rand.random() * 6.0 - 3.0],
+        offset: [rand.random() * 10.0 - 5.0, rand.random() * 10.0 - 5.0, rand.random() * 10.0 - 5.0],
+        //offset: [rand.random() * 2000 - 1000, rand.random() * 2000 - 1000, rand.random() * 2000 - 1000],
+
+      });
+
+      // }
+
+      if (nebulaParams.length >= 2 || rand.random() < 0.5) {
+        break;
+      }
+    }
+    console.log("Nebula params " + nebulaParams.length);
+    // Initialize the sun parameters.
+    var rand = new rng.MT(hashcode(params.seed) + 4000);
+    var sunParams = [];
+    if (params.sun) {
+      sunParams.push({
+        pos: randomVec3(rand),
+        color: [rand.random(), rand.random(), rand.random()],
+        size: rand.random() * 0.0001 + 0.0001,
+        falloff: rand.random() * 16.0 + 8.0,
+      });
+    }
+
+    // Create a list of directions we'll be iterating over.
+    var dirs = {
+      front: {
+        target: [0, 0, -1],
+        up: [0, 1, 0]
+      },
+      back: {
+        target: [0, 0, 1],
+        up: [0, 1, 0]
+      },
+      left: {
+        target: [-1, 0, 0],
+        up: [0, 1, 0]
+      },
+      right: {
+        target: [1, 0, 0],
+        up: [0, 1, 0]
+      },
+      top: {
+        target: [0, 1, 0],
+        up: [0, 0, 1]
+      },
+      bottom: {
+        target: [0, -1, 0],
+        up: [0, 0, -1]
+      }
     };
 
-    self.render = function(params) {
+    // Define and initialize the model, view, and projection matrices.
+    var model = glm.mat4.create();
+    var view = glm.mat4.create();
+    var projection = glm.mat4.create();
+    glm.mat4.perspective(projection, Math.PI / 2, 1.0, 0.1, 256);
 
-        // We'll be returning a map of direction to texture.
-        var textures = {};
+    // Iterate over the directions to render and create the textures.
+    var keys = Object.keys(dirs);
+    for (var i = 0; i < keys.length; i++) {
 
-        // Handle changes to resolution.
-        self.canvas.width = self.canvas.height = params.resolution;
-        self.gl.viewport(0, 0, params.resolution, params.resolution);
+      // Clear the context.
+      self.gl.clearColor(0.05, 0.10, 0.10, 1);
+      self.gl.clear(self.gl.COLOR_BUFFER_BIT);
 
-        // Initialize the point star parameters.
-        var rand = new rng.MT(hashcode(params.seed) + 1000);
-        var pStarParams = [];
-        while (params.pointStars) {
-            pStarParams.push({
-                rotation: randomRotation(rand),
-            });
-            if (rand.random() < 0.2) {
-                break;
-            }
-        }
+      // Look in the direection for this texture.
+      var dir = dirs[keys[i]];
+      glm.mat4.lookAt(view, [0, 0, 0], dir.target, dir.up);
 
-        // Initialize the star parameters.
-        var rand = new rng.MT(hashcode(params.seed) + 3000);
-        var starParams = [];
-        while (params.stars) {
-            starParams.push({
-                pos: randomVec3(rand),
-                color: [1,1,1],
-                size: 0.0,
-                falloff: rand.random() * Math.pow(2, 20) + Math.pow(2, 20),
-            });
-            if (rand.random() < 0.01) {
-                break;
-            }
-        }
+      // Render the point stars.
+      self.pPointStars.use();
+      model = glm.mat4.create();
+      self.pPointStars.setUniform("uView", "Matrix4fv", false, view);
+      self.pPointStars.setUniform("uProjection", "Matrix4fv", false, projection);
+      for (var j = 0; j < pStarParams.length; j++) {
+        var ps = pStarParams[j];
+        glm.mat4.mul(model, ps.rotation, model);
+        self.pPointStars.setUniform("uModel", "Matrix4fv", false, model);
+        self.rPointStars.render();
+      }
 
-        // Initialize the nebula parameters.
-        var rand = new rng.MT(hashcode(params.seed) + 2000);
-        var nebulaParams = [];
+      // Render the stars.
+      self.pStar.use();
+      self.pStar.setUniform("uView", "Matrix4fv", false, view);
+      self.pStar.setUniform("uProjection", "Matrix4fv", false, projection);
+      self.pStar.setUniform("uModel", "Matrix4fv", false, model);
+      for (j = 0; j < starParams.length; j++) {
+        var s = starParams[j];
+        self.pStar.setUniform("uPosition", "3fv", s.pos);
+        self.pStar.setUniform("uColor", "3fv", s.color);
+        self.pStar.setUniform("uSize", "1f", s.size);
+        self.pStar.setUniform("uFalloff", "1f", s.falloff);
+        self.rStar.render();
+      }
 
-        while (params.nebulae) {
+      // Render the nebulae.
+      self.pNebula.use();
+      model = glm.mat4.create();
+      for (j = 0; j < nebulaParams.length; j++) {
+        var p = nebulaParams[j];
+        self.pNebula.setUniform("uModel", "Matrix4fv", false, model);
+        self.pNebula.setUniform("uView", "Matrix4fv", false, view);
+        self.pNebula.setUniform("uProjection", "Matrix4fv", false, projection);
+        self.pNebula.setUniform("uDensity", "1f", p.density);
+        // self.pNebula.setUniform("uScale", "1f", p.scale);
+        self.pNebula.setUniform("uColor", "3fv", p.color);
+        self.pNebula.setUniform("uOpacity", "1f", p.opacity);
+        self.pNebula.setUniform("uBrightness", "1f", p.brightness);
+        self.pNebula.setUniform("uNoiseScale", "1f", p.noiseScale);
+        // self.pNebula.setUniform("uFalloff", "1f", p.falloff);
+        self.pNebula.setUniform("uRot", "3fv", p.rot);
+        self.pNebula.setUniform("uOffset", "3fv", p.offset);
+        self.rNebula.render();
 
-            var color = colorConvert.hsl.rgb.raw(rand.random()*360.0, rand.random() * 50 + 20, rand.random() * 25 + 25);
-            color = color.map(function(v) { return v/255.0; });
+      }
 
-            // if(rand.random() < 0.1) {
-            //     // close nebula
-            //     nebulaParams.push({
-            //         scale: rand.random() * 0.5 + 0.25,
-            //         color: color,
-            //         intensity: rand.random() * 0.2 + 0.9,
-            //         falloff: rand.random() * 4.0 + 4.0,
-            //         rot: [rand.random() * 6.0 - 3.0, rand.random() * 6.0 - 3.0, rand.random() * 6.0 - 3.0],
-            //         offset: [rand.random() * 3 - 1.5, rand.random() * 3.0- 1.5, rand.random() * 3.0 - 1.5],
-            //         //offset: [rand.random() * 2000 - 1000, rand.random() * 2000 - 1000, rand.random() * 2000 - 1000],
+      // Render the suns.
+      self.pSun.use();
+      self.pSun.setUniform("uView", "Matrix4fv", false, view);
+      self.pSun.setUniform("uProjection", "Matrix4fv", false, projection);
+      self.pSun.setUniform("uModel", "Matrix4fv", false, model);
+      for (j = 0; j < sunParams.length; j++) {
+        var sun = sunParams[j];
+        self.pSun.setUniform("uPosition", "3fv", sun.pos);
+        self.pSun.setUniform("uColor", "3fv", sun.color);
+        self.pSun.setUniform("uSize", "1f", sun.size);
+        self.pSun.setUniform("uFalloff", "1f", sun.falloff);
+        self.rSun.render();
+      }
 
-            //     });
-            // } else {
-                // far nebula
-                nebulaParams.push({
-                    scale: rand.random() * 0.5 + 0.25,
-                    color: color,
-                    brightness: params.nebulaBrightness,
-                    opacity: params.nebulaOpacity,
-                    noiseScale: params.noiseScale,
-                    density: rand.random() * 0.25,
-                    falloff: rand.random() * 3.0 + 3.0,
-                    rot: [rand.random() * 6.0 - 3.0, rand.random() * 6.0 - 3.0, rand.random() * 6.0 - 3.0],
-                    offset: [rand.random() * 10.0 - 5.0, rand.random() * 10.0 - 5.0, rand.random() * 10.0 - 5.0],
-                    //offset: [rand.random() * 2000 - 1000, rand.random() * 2000 - 1000, rand.random() * 2000 - 1000],
+      // Create the texture.
+      var c = document.createElement("canvas");
+      c.width = c.height = params.resolution;
+      var ctx = c.getContext("2d");
+      ctx.drawImage(self.canvas, 0, 0);
+      textures[keys[i]] = c;
+    }
 
-                });
-
-            // }
-
-            if (nebulaParams.length >= 2 || rand.random() < 0.5) {
-                break;
-            }
-        }
-console.log("Nebula params " + nebulaParams.length);
-        // Initialize the sun parameters.
-        var rand = new rng.MT(hashcode(params.seed) + 4000);
-        var sunParams = [];
-        if (params.sun) {
-            sunParams.push({
-                pos: randomVec3(rand),
-                color: [rand.random(), rand.random(), rand.random()],
-                size: rand.random() * 0.0001 + 0.0001,
-                falloff: rand.random() * 16.0 + 8.0,
-            });
-        }
-
-        // Create a list of directions we'll be iterating over.
-        var dirs = {
-            front: {
-                target: [0, 0, -1],
-                up: [0, 1, 0]
-            },
-            back: {
-                target: [0, 0, 1],
-                up: [0, 1, 0]
-            },
-            left: {
-                target: [-1, 0, 0],
-                up: [0, 1, 0]
-            },
-            right: {
-                target: [1, 0, 0],
-                up: [0, 1, 0]
-            },
-            top: {
-                target: [0, 1, 0],
-                up: [0, 0, 1]
-            },
-            bottom: {
-                target: [0, -1, 0],
-                up: [0, 0, -1]
-            }
-        };
-
-        // Define and initialize the model, view, and projection matrices.
-        var model = glm.mat4.create();
-        var view = glm.mat4.create();
-        var projection = glm.mat4.create();
-        glm.mat4.perspective(projection, Math.PI/2, 1.0, 0.1, 256);
-
-        // Iterate over the directions to render and create the textures.
-        var keys = Object.keys(dirs);
-        for (var i = 0; i < keys.length; i++) {
-
-            // Clear the context.
-            self.gl.clearColor(0.05,0.10,0.10,1);
-            self.gl.clear(self.gl.COLOR_BUFFER_BIT);
-
-            // Look in the direection for this texture.
-            var dir = dirs[keys[i]];
-            glm.mat4.lookAt(view, [0,0,0], dir.target, dir.up);
-
-            // Render the point stars.
-            self.pPointStars.use();
-            model = glm.mat4.create();
-            self.pPointStars.setUniform("uView", "Matrix4fv", false, view);
-            self.pPointStars.setUniform("uProjection", "Matrix4fv", false, projection);
-            for (var j = 0; j < pStarParams.length; j++) {
-                var ps = pStarParams[j];
-                glm.mat4.mul(model, ps.rotation, model);
-                self.pPointStars.setUniform("uModel", "Matrix4fv", false, model);
-                self.rPointStars.render();
-            }
-
-            // Render the stars.
-            self.pStar.use();
-            self.pStar.setUniform("uView", "Matrix4fv", false, view);
-            self.pStar.setUniform("uProjection", "Matrix4fv", false, projection);
-            self.pStar.setUniform("uModel", "Matrix4fv", false, model);
-            for (j = 0; j < starParams.length; j++) {
-                var s = starParams[j];
-                self.pStar.setUniform("uPosition", "3fv", s.pos);
-                self.pStar.setUniform("uColor", "3fv", s.color);
-                self.pStar.setUniform("uSize", "1f", s.size);
-                self.pStar.setUniform("uFalloff", "1f", s.falloff);
-                self.rStar.render();
-            }
-
-            // Render the nebulae.
-            self.pNebula.use();
-            model = glm.mat4.create();
-            for (j = 0; j < nebulaParams.length; j++) {
-                var p = nebulaParams[j];
-                self.pNebula.setUniform("uModel", "Matrix4fv", false, model);
-                self.pNebula.setUniform("uView", "Matrix4fv", false, view);
-                self.pNebula.setUniform("uProjection", "Matrix4fv", false, projection);
-                self.pNebula.setUniform("uDensity", "1f", p.density);
-                // self.pNebula.setUniform("uScale", "1f", p.scale);
-                self.pNebula.setUniform("uColor", "3fv", p.color);
-                self.pNebula.setUniform("uOpacity", "1f", p.opacity);
-                self.pNebula.setUniform("uBrightness", "1f", p.brightness);
-                self.pNebula.setUniform("uNoiseScale", "1f", p.noiseScale);
-                // self.pNebula.setUniform("uFalloff", "1f", p.falloff);
-                self.pNebula.setUniform("uRot", "3fv", p.rot);
-                self.pNebula.setUniform("uOffset", "3fv", p.offset);
-                self.rNebula.render();
-
-            }
-
-            // Render the suns.
-            self.pSun.use();
-            self.pSun.setUniform("uView", "Matrix4fv", false, view);
-            self.pSun.setUniform("uProjection", "Matrix4fv", false, projection);
-            self.pSun.setUniform("uModel", "Matrix4fv", false, model);
-            for (j = 0; j < sunParams.length; j++) {
-                var sun = sunParams[j];
-                self.pSun.setUniform("uPosition", "3fv", sun.pos);
-                self.pSun.setUniform("uColor", "3fv", sun.color);
-                self.pSun.setUniform("uSize", "1f", sun.size);
-                self.pSun.setUniform("uFalloff", "1f", sun.falloff);
-                self.rSun.render();
-            }
-
-            // Create the texture.
-            var c = document.createElement("canvas");
-            c.width = c.height = params.resolution;
-            var ctx = c.getContext("2d");
-            ctx.drawImage(self.canvas, 0, 0);
-            textures[keys[i]] = c;
-        }
-
-        return textures;
+    return textures;
   };
 
   self.initialize();
