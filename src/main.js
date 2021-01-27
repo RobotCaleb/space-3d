@@ -6,39 +6,79 @@
 
 var qs = require("query-string");
 var glm = require("gl-matrix");
+var saveAs = require("filesaver.js").saveAs;
+var JSZip = require("jszip");
 var Space3D = require("./space-3d.js");
 var Skybox = require("./skybox.js");
 
 var resolution = 512;
 
 window.onload = function() {
+  var params = qs.parse(location.hash);
 
-    var params = qs.parse(location.hash);
-
-    var ControlsMenu = function() {
-        this.seed = params.seed || generateRandomSeed();
-        this.randomSeed = function() {
-            this.seed = generateRandomSeed();
-            renderTextures();
-        };
-        this.fov = parseInt(params.fov) || 80;
-        this.pointStars = params.pointStars === undefined ? true : params.pointStars === "true";
-        this.stars = params.stars === undefined ? true : params.stars === "true";
-        this.sun = params.sun === undefined ? true : params.sun === "true";
-        this.nebulae = params.nebulae === undefined ? true : params.nebulae === "true";
-        this.nebulaOpacity = params.nebulaOpacity === undefined ? 100 : parseInt(params.nebulaOpacity);
-        this.noiseScale = params.nebulaOpacity === undefined ? 50 : parseFloat(params.noiseScale);
-        this.nebulaBrightness = params.nebulaBrightness === undefined ? 50 : parseInt(params.nebulaBrightness);
-        this.resolution = parseInt(params.resolution) || 512;
-        this.animationSpeed = params.animationSpeed === undefined ? 1.0 : parseFloat(params.animationSpeed);
-        this.unifiedTexture = params.unifiedTexture === undefined ? true : params.unifiedTexture === "true";
+  var ControlsMenu = function() {
+      this.seed = params.seed || generateRandomSeed();
+      this.randomSeed = function() {
+          this.seed = generateRandomSeed();
+          renderTextures();
+      };
+      this.fov = parseInt(params.fov) || 80;
+      this.pointStars = params.pointStars === undefined ? true : params.pointStars === "true";
+      this.stars = params.stars === undefined ? true : params.stars === "true";
+      this.sun = params.sun === undefined ? true : params.sun === "true";
+      this.nebulae = params.nebulae === undefined ? true : params.nebulae === "true";
+      this.nebulaOpacity = params.nebulaOpacity === undefined ? 100 : parseInt(params.nebulaOpacity);
+      this.noiseScale = params.nebulaOpacity === undefined ? 50 : parseFloat(params.noiseScale);
+      this.nebulaBrightness = params.nebulaBrightness === undefined ? 50 : parseInt(params.nebulaBrightness);
+      this.resolution = parseInt(params.resolution) || 512;
+      this.animationSpeed = params.animationSpeed === undefined ? 1.0 : parseFloat(params.animationSpeed);
+      this.unifiedTexture = params.unifiedTexture === undefined ? true : params.unifiedTexture === "true";
+    this.saveSkybox = function() {
+      const zip = new JSZip();
+      for (const name of ["front", "back", "left", "right", "top", "bottom"]) {
+        const canvas = document.getElementById(`texture-${name}`);
+        const data = canvas.toDataURL().split(",")[1];
+        zip.file(`${name}.png`, data, { base64: true });
+      }
+      if (this.resolution <= 2048) {
+        const cubemapData = this._saveCubemap().split(",")[1];
+        zip.file('cubemap.png', cubemapData, { base64: true });    
+      }
+      zip.generateAsync({ type: "blob" }).then(blob => {
+        saveAs(blob, "skybox.zip");
+      });
     };
+    this._saveCubemap = function() {
+      const cubemapCanvas = document.getElementById('texture-cubemap');
+      const left = document.getElementById('texture-left');
+      const top = document.getElementById('texture-top');
+      const front = document.getElementById('texture-front');
+      const bottom = document.getElementById('texture-bottom');
+      const right = document.getElementById('texture-right');
+      const back = document.getElementById('texture-back');
+      
+      // set size of canvas depending on resolution
+      var context = cubemapCanvas.getContext('2d');
+      context.canvas.width = this.resolution * 4;
+      context.canvas.height = this.resolution * 3;
 
-    var menu = new ControlsMenu();
-    var gui = new dat.GUI({
-        autoPlace: false,
-        width: 320,
-    });
+      // combine images together in the texture-cubemap canvas
+      context.drawImage(left, 0, this.resolution);
+      context.drawImage(top, this.resolution, 0);
+      context.drawImage(front, this.resolution, this.resolution);
+      context.drawImage(bottom, this.resolution, this.resolution * 2);
+      context.drawImage(right, this.resolution * 2, this.resolution);
+      context.drawImage(back, this.resolution * 3, this.resolution);
+    
+      return cubemapCanvas.toDataURL("image/png");      
+    };
+  };
+
+  var menu = new ControlsMenu();
+  var gui = new dat.GUI({
+    autoPlace: false,
+    width: 320
+  });
     gui.add(menu, "seed").name("Seed").listen().onFinishChange(renderTextures);
     gui.add(menu, "randomSeed").name("Randomize seed");
     gui.add(menu, "fov", 10, 150, 1).name("Field of view °");
@@ -66,146 +106,146 @@ window.onload = function() {
         gui.domElement.style.display = "block";
     }
 
-    function hideUnified() {
-        document.getElementById("texture-canvas").style.display = "none";
+  function hideSplit() {
+    document.getElementById("texture-left").style.display = "none";
+    document.getElementById("texture-right").style.display = "none";
+    document.getElementById("texture-top").style.display = "none";
+    document.getElementById("texture-bottom").style.display = "none";
+    document.getElementById("texture-front").style.display = "none";
+    document.getElementById("texture-back").style.display = "none";
+  }
+
+  function showSplit() {
+    document.getElementById("texture-left").style.display = "block";
+    document.getElementById("texture-right").style.display = "block";
+    document.getElementById("texture-top").style.display = "block";
+    document.getElementById("texture-bottom").style.display = "block";
+    document.getElementById("texture-front").style.display = "block";
+    document.getElementById("texture-back").style.display = "block";
+  }
+
+  function setQueryString() {
+      var queryString = qs.stringify({
+          seed: menu.seed,
+          fov: menu.fov,
+          pointStars: menu.pointStars,
+          stars: menu.stars,
+          sun: menu.sun,
+          nebulae: menu.nebulae,
+          resolution: menu.resolution,
+          animationSpeed: menu.animationSpeed,
+          nebulaOpacity: menu.nebulaOpacity,
+          nebulaBrightness: menu.nebulaBrightness,
+          noiseScale: menu.noiseScale
+      });
+
+      try {
+        history.replaceState(null, "", "#" + queryString);
+      } catch (e) {
+        location.hash = queryString;
+      }
+  }
+
+  var hideControls = false;
+
+  window.onkeypress = function(e) {
+    if (e.charCode == 32) {
+      hideControls = !hideControls;
+    }
+  };
+
+  var renderCanvas = document.getElementById("render-canvas");
+  renderCanvas.width = renderCanvas.clientWidth;
+  renderCanvas.height = renderCanvas.clientHeight;
+
+  var skybox = new Skybox(renderCanvas);
+  var space = new Space3D(resolution);
+
+  function renderTextures() {
+    var textures = space.render({
+        seed: menu.seed,
+        pointStars: menu.pointStars,
+        stars: menu.stars,
+        sun: menu.sun,
+        nebulae: menu.nebulae,
+        unifiedTexture: menu.unifiedTexture,
+        resolution: menu.resolution,
+        nebulaOpacity: menu.nebulaOpacity/100.0,
+        nebulaBrightness: menu.nebulaBrightness/100.0,
+        noiseScale: 4.0 * ((menu.noiseScale/100.0) - 0.5)
+    });
+    skybox.setTextures(textures);
+    var canvas = document.getElementById("texture-canvas");
+    canvas.width = 4 * menu.resolution;
+    canvas.height = 3 * menu.resolution;
+    var ctx = canvas.getContext("2d");
+    ctx.drawImage(textures.left,   menu.resolution * 0, menu.resolution * 1);
+    ctx.drawImage(textures.right,  menu.resolution * 2, menu.resolution * 1);
+    ctx.drawImage(textures.front,  menu.resolution * 1, menu.resolution * 1);
+    ctx.drawImage(textures.back,   menu.resolution * 3, menu.resolution * 1);
+    ctx.drawImage(textures.top,    menu.resolution * 1, menu.resolution * 0);
+    ctx.drawImage(textures.bottom, menu.resolution * 1, menu.resolution * 2);
+
+    function drawIndividual(source, targetid) {
+        var canvas = document.getElementById(targetid);
+        canvas.width = canvas.height = menu.resolution;
+        var ctx = canvas.getContext("2d");
+        ctx.drawImage(source, 0, 0);
     }
 
-    function showUnified() {
-        document.getElementById("texture-canvas").style.display = "block";
+    drawIndividual(textures.left,   "texture-left");
+    drawIndividual(textures.right,  "texture-right");
+    drawIndividual(textures.front,  "texture-front");
+    drawIndividual(textures.back,   "texture-back");
+    drawIndividual(textures.top,    "texture-top");
+    drawIndividual(textures.bottom, "texture-bottom");
+  }
+
+  renderTextures();
+
+  var tick = 0.0;
+
+  function render() {
+    hideGui();
+
+    if (!hideControls) {
+      showGui();
     }
 
-    function hideSplit() {
-        document.getElementById("texture-left").style.display = "none";
-        document.getElementById("texture-right").style.display = "none";
-        document.getElementById("texture-top").style.display = "none";
-        document.getElementById("texture-bottom").style.display = "none";
-        document.getElementById("texture-front").style.display = "none";
-        document.getElementById("texture-back").style.display = "none";
-    }
+    tick += 0.0025 * menu.animationSpeed;
 
-    function showSplit() {
-        document.getElementById("texture-left").style.display = "block";
-        document.getElementById("texture-right").style.display = "block";
-        document.getElementById("texture-top").style.display = "block";
-        document.getElementById("texture-bottom").style.display = "block";
-        document.getElementById("texture-front").style.display = "block";
-        document.getElementById("texture-back").style.display = "block";
-    }
+    var view = glm.mat4.create();
+    var projection = glm.mat4.create();
 
-    function setQueryString() {
-        location.hash = qs.stringify({
-            seed: menu.seed,
-            fov: menu.fov,
-            pointStars: menu.pointStars,
-            stars: menu.stars,
-            sun: menu.sun,
-            nebulae: menu.nebulae,
-            resolution: menu.resolution,
-            animationSpeed: menu.animationSpeed,
-            nebulaOpacity: menu.nebulaOpacity,
-            nebulaBrightness: menu.nebulaBrightness,
-            noiseScale: menu.noiseScale
-        });
-    }
-
-    var hideControls = false;
-
-    window.onkeypress = function(e) {
-        if (e.charCode == 32) {
-            hideControls = !hideControls;
-        }
-    };
-
-    var renderCanvas = document.getElementById("render-canvas");
     renderCanvas.width = renderCanvas.clientWidth;
     renderCanvas.height = renderCanvas.clientHeight;
 
-    var skybox = new Skybox(renderCanvas);
-    var space = new Space3D(resolution);
+    glm.mat4.lookAt(
+      view,
+      [0, 0, 0],
+      [Math.cos(tick), Math.sin(tick * 0.555), Math.sin(tick)],
+      [0, 1, 0]
+    );
 
-    function renderTextures() {
-        var textures = space.render({
-            seed: menu.seed,
-            pointStars: menu.pointStars,
-            stars: menu.stars,
-            sun: menu.sun,
-            nebulae: menu.nebulae,
-            unifiedTexture: menu.unifiedTexture,
-            resolution: menu.resolution,
-            nebulaOpacity: menu.nebulaOpacity/100.0,
-            nebulaBrightness: menu.nebulaBrightness/100.0,
-            noiseScale: 4.0 * ((menu.noiseScale/100.0) - 0.5)
-        });
-        skybox.setTextures(textures);
-        var canvas = document.getElementById("texture-canvas");
-        canvas.width = 4 * menu.resolution;
-        canvas.height = 3 * menu.resolution;
-        var ctx = canvas.getContext("2d");
-        ctx.drawImage(textures.left,   menu.resolution * 0, menu.resolution * 1);
-        ctx.drawImage(textures.right,  menu.resolution * 2, menu.resolution * 1);
-        ctx.drawImage(textures.front,  menu.resolution * 1, menu.resolution * 1);
-        ctx.drawImage(textures.back,   menu.resolution * 3, menu.resolution * 1);
-        ctx.drawImage(textures.top,    menu.resolution * 1, menu.resolution * 0);
-        ctx.drawImage(textures.bottom, menu.resolution * 1, menu.resolution * 2);
+    var fov = (menu.fov / 360) * Math.PI * 2;
+    glm.mat4.perspective(
+      projection,
+      fov,
+      renderCanvas.width / renderCanvas.height,
+      0.1,
+      8
+    );
 
-        function drawIndividual(source, targetid) {
-            var canvas = document.getElementById(targetid);
-            canvas.width = canvas.height = menu.resolution;
-            var ctx = canvas.getContext("2d");
-            ctx.drawImage(source, 0, 0);
-        }
+    skybox.render(view, projection);
 
-        drawIndividual(textures.left,   "texture-left");
-        drawIndividual(textures.right,  "texture-right");
-        drawIndividual(textures.front,  "texture-front");
-        drawIndividual(textures.back,   "texture-back");
-        drawIndividual(textures.top,    "texture-top");
-        drawIndividual(textures.bottom, "texture-bottom");
-    }
+    requestAnimationFrame(render);
 
-    renderTextures();
+    setQueryString();
+  }
 
-    var tick = 0.0;
-
-    function render() {
-
-        hideUnified();
-        hideSplit();
-        hideGui();
-
-        if (!hideControls) {
-            showGui();
-            if (menu.unifiedTexture) {
-                showUnified();
-            } else {
-                showSplit();
-            }
-        }
-
-        tick += 0.0025 * menu.animationSpeed;
-
-        var view = glm.mat4.create();
-        var projection = glm.mat4.create();
-
-        renderCanvas.width = renderCanvas.clientWidth;
-        renderCanvas.height = renderCanvas.clientHeight;
-
-        glm.mat4.lookAt(view, [0,0,0], [Math.cos(tick), Math.sin(tick * 0.555), Math.sin(tick)], [0,1,0]);
-
-        var fov = (menu.fov/360)*Math.PI*2;
-        glm.mat4.perspective(projection, fov, renderCanvas.width/renderCanvas.height, 0.1, 8);
-
-        skybox.render(view, projection);
-
-        requestAnimationFrame(render);
-
-        setQueryString();
-    }
-
-    render();
-
+  render();
 };
 
 function generateRandomSeed() {
-    return (Math.random() * 1000000000000000000).toString(36);
+  return (Math.random() * 1000000000000000000).toString(36);
 }

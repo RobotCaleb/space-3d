@@ -15,7 +15,6 @@ var colorConvert = require("color-convert");
 var NSTARS = 100000;
 
 module.exports = function() {
-
     var self = this;
 
     self.initialize = function() {
@@ -265,140 +264,199 @@ console.log("Nebula params " + nebulaParams.length);
         }
 
         return textures;
-    };
+  };
 
-    self.initialize();
+  self.initialize();
 };
 
-
 function buildStar(size, pos, dist, rand) {
+  var c = Math.pow(rand.random(), 4.0);
+  var color = [c, c, c, c, c, c, c, c, c, c, c, c, c, c, c, c, c, c];
 
-    var c = Math.pow(rand.random(), 4.0);
-    var color = [
-        c, c, c,
-        c, c, c,
-        c, c, c,
-        c, c, c,
-        c, c, c,
-        c, c, c
-    ];
+  var vertices = [
+    [-size, -size, 0],
+    [size, -size, 0],
+    [size, size, 0],
+    [-size, -size, 0],
+    [size, size, 0],
+    [-size, size, 0]
+  ];
 
-    var vertices = [
-        [-size, -size, 0],
-        [ size, -size, 0],
-        [ size,  size, 0],
-        [-size, -size, 0],
-        [ size,  size, 0],
-        [-size,  size, 0]
-    ];
+  var position = [];
 
-    var position = [];
+  for (var ii = 0; ii < 6; ii++) {
+    var rot = quatRotFromForward(pos);
+    glm.vec3.transformQuat(vertices[ii], vertices[ii], rot);
+    vertices[ii][0] += pos[0] * dist;
+    vertices[ii][1] += pos[1] * dist;
+    vertices[ii][2] += pos[2] * dist;
+    position.push.apply(position, vertices[ii]);
+  }
 
-    for (var ii = 0; ii < 6; ii++) {
-        var rot = quatRotFromForward(pos);
-        glm.vec3.transformQuat(vertices[ii], vertices[ii], rot);
-        vertices[ii][0] += pos[0] * dist;
-        vertices[ii][1] += pos[1] * dist;
-        vertices[ii][2] += pos[2] * dist;
-        position.push.apply(position, vertices[ii]);
-    }
-
-    return {
-        position: position,
-        color: color
-    };
+  return {
+    position: position,
+    color: color
+  };
 }
-
 
 function buildBox(gl, program) {
-    var position = [
-        -1, -1, -1,
-         1, -1, -1,
-         1,  1, -1,
-        -1, -1, -1,
-         1,  1, -1,
-        -1,  1, -1,
+  var position = [
+    -1,
+    -1,
+    -1,
+    1,
+    -1,
+    -1,
+    1,
+    1,
+    -1,
+    -1,
+    -1,
+    -1,
+    1,
+    1,
+    -1,
+    -1,
+    1,
+    -1,
 
-         1, -1,  1,
-        -1, -1,  1,
-        -1,  1,  1,
-         1, -1,  1,
-        -1,  1,  1,
-         1,  1,  1,
+    1,
+    -1,
+    1,
+    -1,
+    -1,
+    1,
+    -1,
+    1,
+    1,
+    1,
+    -1,
+    1,
+    -1,
+    1,
+    1,
+    1,
+    1,
+    1,
 
-         1, -1, -1,
-         1, -1,  1,
-         1,  1,  1,
-         1, -1, -1,
-         1,  1,  1,
-         1,  1, -1,
+    1,
+    -1,
+    -1,
+    1,
+    -1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    -1,
+    -1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    -1,
 
-        -1, -1,  1,
-        -1, -1, -1,
-        -1,  1, -1,
-        -1, -1,  1,
-        -1,  1, -1,
-        -1,  1,  1,
+    -1,
+    -1,
+    1,
+    -1,
+    -1,
+    -1,
+    -1,
+    1,
+    -1,
+    -1,
+    -1,
+    1,
+    -1,
+    1,
+    -1,
+    -1,
+    1,
+    1,
 
-        -1,  1, -1,
-         1,  1, -1,
-         1,  1,  1,
-        -1,  1, -1,
-         1,  1,  1,
-        -1,  1,  1,
+    -1,
+    1,
+    -1,
+    1,
+    1,
+    -1,
+    1,
+    1,
+    1,
+    -1,
+    1,
+    -1,
+    1,
+    1,
+    1,
+    -1,
+    1,
+    1,
 
-        -1, -1,  1,
-         1, -1,  1,
-         1, -1, -1,
-        -1, -1,  1,
-         1, -1, -1,
-        -1, -1, -1
-    ];
-    var attribs = webgl.buildAttribs(gl, {aPosition: 3});
-    attribs.aPosition.buffer.set(new Float32Array(position));
-    var count = position.length / 9;
-    var renderable = new webgl.Renderable(gl, program, attribs, count);
-    return renderable;
+    -1,
+    -1,
+    1,
+    1,
+    -1,
+    1,
+    1,
+    -1,
+    -1,
+    -1,
+    -1,
+    1,
+    1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1
+  ];
+  var attribs = webgl.buildAttribs(gl, { aPosition: 3 });
+  attribs.aPosition.buffer.set(new Float32Array(position));
+  var count = position.length / 9;
+  var renderable = new webgl.Renderable(gl, program, attribs, count);
+  return renderable;
 }
-
 
 function quatRotBetweenVecs(a, b) {
-    var theta = Math.acos(glm.vec3.dot(a, b));
-    var omega = glm.vec3.create();
-    glm.vec3.cross(omega, a, b);
-    glm.vec3.normalize(omega, omega);
-    var rot = glm.quat.create();
-    glm.quat.setAxisAngle(rot, omega, theta);
-    return rot;
+  var theta = Math.acos(glm.vec3.dot(a, b));
+  var omega = glm.vec3.create();
+  glm.vec3.cross(omega, a, b);
+  glm.vec3.normalize(omega, omega);
+  var rot = glm.quat.create();
+  glm.quat.setAxisAngle(rot, omega, theta);
+  return rot;
 }
-
 
 function quatRotFromForward(b) {
-    return quatRotBetweenVecs(glm.vec3.fromValues(0, 0, -1), b);
+  return quatRotBetweenVecs(glm.vec3.fromValues(0, 0, -1), b);
 }
 
-
 function randomRotation(rand) {
-    var rot = glm.mat4.create();
-    glm.mat4.rotateX(rot, rot, rand.random() * Math.PI * 2);
-    glm.mat4.rotateY(rot, rot, rand.random() * Math.PI * 2);
-    glm.mat4.rotateZ(rot, rot, rand.random() * Math.PI * 2);
-    return rot;
+  var rot = glm.mat4.create();
+  glm.mat4.rotateX(rot, rot, rand.random() * Math.PI * 2);
+  glm.mat4.rotateY(rot, rot, rand.random() * Math.PI * 2);
+  glm.mat4.rotateZ(rot, rot, rand.random() * Math.PI * 2);
+  return rot;
 }
 
 function randomVec3(rand) {
-    var v = [0, 0, 1];
-    var rot = randomRotation(rand);
-    glm.vec3.transformMat4(v, v, rot);
-    glm.vec3.normalize(v, v);
-    return v;
+  var v = [0, 0, 1];
+  var rot = randomRotation(rand);
+  glm.vec3.transformMat4(v, v, rot);
+  glm.vec3.normalize(v, v);
+  return v;
 }
 
 function hashcode(str) {
-    var hash = 0;
-    for (var i = 0; i < str.length; i++) {
-        var char = str.charCodeAt(i);
-        hash += (i + 1) * char;
-    }
-    return hash;
+  var hash = 0;
+  for (var i = 0; i < str.length; i++) {
+    var char = str.charCodeAt(i);
+    hash += (i + 1) * char;
+  }
+  return hash;
 }
