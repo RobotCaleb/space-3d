@@ -13,27 +13,29 @@ var Skybox = require("./skybox.js");
 
 var resolution = 512;
 
-window.onload = function() {
+window.onload = function () {
   var params = qs.parse(location.hash);
 
-  var ControlsMenu = function() {
-      this.seed = params.seed || generateRandomSeed();
-      this.randomSeed = function() {
-          this.seed = generateRandomSeed();
-          renderTextures();
-      };
-      this.fov = parseInt(params.fov) || 80;
-      this.pointStars = params.pointStars === undefined ? true : params.pointStars === "true";
-      this.stars = params.stars === undefined ? true : params.stars === "true";
-      this.sun = params.sun === undefined ? true : params.sun === "true";
-      this.nebulae = params.nebulae === undefined ? true : params.nebulae === "true";
-      this.nebulaOpacity = params.nebulaOpacity === undefined ? 100 : parseInt(params.nebulaOpacity);
-      this.noiseScale = params.nebulaOpacity === undefined ? 50 : parseFloat(params.noiseScale);
-      this.nebulaBrightness = params.nebulaBrightness === undefined ? 50 : parseInt(params.nebulaBrightness);
-      this.resolution = parseInt(params.resolution) || 512;
-      this.animationSpeed = params.animationSpeed === undefined ? 1.0 : parseFloat(params.animationSpeed);
-      this.unifiedTexture = params.unifiedTexture === undefined ? true : params.unifiedTexture === "true";
-    this.saveSkybox = function() {
+  var ControlsMenu = function () {
+    this.seed = params.seed || generateRandomSeed();
+    this.randomSeed = function () {
+      this.seed = generateRandomSeed();
+      renderTextures();
+    };
+    this.fov = parseInt(params.fov) || 80;
+    this.pointStars = params.pointStars === undefined ? true : params.pointStars === "true";
+    this.pointStarsPercent = params.pointStarsPercent === undefined ? 50.0 : parseFloat(params.pointStarsPercent);
+    this.stars = params.stars === undefined ? true : params.stars === "true";
+    this.starsAmount = params.starsAmount === undefined ? 25.0 : parseFloat(params.starsAmount);
+    this.sun = params.sun === undefined ? true : params.sun === "true";
+    this.nebulae = params.nebulae === undefined ? true : params.nebulae === "true";
+    this.nebulaOpacity = params.nebulaOpacity === undefined ? 100 : parseInt(params.nebulaOpacity);
+    this.noiseScale = params.nebulaOpacity === undefined ? 50 : parseFloat(params.noiseScale);
+    this.nebulaBrightness = params.nebulaBrightness === undefined ? 50 : parseInt(params.nebulaBrightness);
+    this.resolution = parseInt(params.resolution) || 512;
+    this.animationSpeed = params.animationSpeed === undefined ? 1.0 : parseFloat(params.animationSpeed);
+    this.url = window.location.href.toString();
+    this.saveSkybox = function () {
       const zip = new JSZip();
       for (const name of ["front", "back", "left", "right", "top", "bottom"]) {
         const canvas = document.getElementById(`texture-${name}`);
@@ -42,13 +44,13 @@ window.onload = function() {
       }
       if (this.resolution <= 2048) {
         const cubemapData = this._saveCubemap().split(",")[1];
-        zip.file('cubemap.png', cubemapData, { base64: true });    
+        zip.file('cubemap.png', cubemapData, { base64: true });
       }
       zip.generateAsync({ type: "blob" }).then(blob => {
         saveAs(blob, "skybox.zip");
       });
     };
-    this._saveCubemap = function() {
+    this._saveCubemap = function () {
       const cubemapCanvas = document.getElementById('texture-cubemap');
       const left = document.getElementById('texture-left');
       const top = document.getElementById('texture-top');
@@ -56,7 +58,7 @@ window.onload = function() {
       const bottom = document.getElementById('texture-bottom');
       const right = document.getElementById('texture-right');
       const back = document.getElementById('texture-back');
-      
+
       // set size of canvas depending on resolution
       var context = cubemapCanvas.getContext('2d');
       context.canvas.width = this.resolution * 4;
@@ -69,8 +71,8 @@ window.onload = function() {
       context.drawImage(bottom, this.resolution, this.resolution * 2);
       context.drawImage(right, this.resolution * 2, this.resolution);
       context.drawImage(back, this.resolution * 3, this.resolution);
-    
-      return cubemapCanvas.toDataURL("image/png");      
+
+      return cubemapCanvas.toDataURL("image/png");
     };
   };
 
@@ -79,32 +81,35 @@ window.onload = function() {
     autoPlace: false,
     width: 320
   });
-    gui.add(menu, "seed").name("Seed").listen().onFinishChange(renderTextures);
-    gui.add(menu, "randomSeed").name("Randomize seed");
-    gui.add(menu, "fov", 10, 150, 1).name("Field of view °");
-    gui.add(menu, "pointStars").name("Point stars").onChange(renderTextures);
-    gui.add(menu, "stars").name("Bright stars").onChange(renderTextures);
-    gui.add(menu, "sun").name("Sun").onChange(renderTextures);
-    gui.add(menu, "nebulae").name("Nebulae").onChange(renderTextures);
-    gui.add(menu, "nebulaOpacity", 0, 100).name("nebulaOpacity").onChange(renderTextures);
-    gui.add(menu, "nebulaBrightness", 0, 100).name("nebulaBrightness").onChange(renderTextures);
-    gui.add(menu, "noiseScale", 0, 100).name("noiseScale").onChange(renderTextures);
-    gui.add(menu, "resolution", [256, 512, 1024, 2048, 4096]).name("Resolution").onChange(renderTextures);
-    gui.add(menu, "unifiedTexture").name("Unified texture");
-    gui.add(menu, "animationSpeed", 0, 10).name("Animation speed");
+  gui.add(menu, "seed").name("Seed").listen().onFinishChange(renderTextures);
+  gui.add(menu, "randomSeed").name("Randomize seed");
+  gui.add(menu, "fov", 10, 150, 1).name("Field of view °");
+  gui.add(menu, "pointStars").name("Point stars").onFinishChange(renderTextures);
+  gui.add(menu, "pointStarsPercent").name("Point stars %").onFinishChange(renderTextures);
+  gui.add(menu, "stars").name("Bright stars").onFinishChange(renderTextures);
+  gui.add(menu, "starsAmount").name("Bright stars Amount").onFinishChange(renderTextures);
+  gui.add(menu, "sun").name("Sun").onFinishChange(renderTextures);
+  gui.add(menu, "nebulae").name("Nebulae").onFinishChange(renderTextures);
+  gui.add(menu, "nebulaOpacity", 0, 100).name("nebulaOpacity").onFinishChange(renderTextures);
+  gui.add(menu, "nebulaBrightness", 0, 100).name("nebulaBrightness").onFinishChange(renderTextures);
+  gui.add(menu, "noiseScale", 0, 100).name("noiseScale").onFinishChange(renderTextures);
+  gui.add(menu, "resolution", [256, 512, 1024, 2048, 4096]).name("Resolution").onFinishChange(renderTextures);
+  gui.add(menu, "animationSpeed", 0, 10).name("Animation speed");
+  gui.add(menu, "saveSkybox").name("Download skybox");
+  gui.add(menu, "url").name("URL").listen();
 
-    document.body.appendChild(gui.domElement);
-    gui.domElement.style.position = "fixed";
-    gui.domElement.style.left = "16px";
-    gui.domElement.style.top = "272px";
+  document.body.appendChild(gui.domElement);
+  gui.domElement.style.position = "fixed";
+  gui.domElement.style.left = "16px";
+  gui.domElement.style.top = "272px";
 
-    function hideGui() {
-        gui.domElement.style.display = "none";
-    }
+  function hideGui() {
+    gui.domElement.style.display = "none";
+  }
 
-    function showGui() {
-        gui.domElement.style.display = "block";
-    }
+  function showGui() {
+    gui.domElement.style.display = "block";
+  }
 
   function hideSplit() {
     document.getElementById("texture-left").style.display = "none";
@@ -124,31 +129,31 @@ window.onload = function() {
     document.getElementById("texture-back").style.display = "block";
   }
 
-  function setQueryString() {
-      var queryString = qs.stringify({
-          seed: menu.seed,
-          fov: menu.fov,
-          pointStars: menu.pointStars,
-          stars: menu.stars,
-          sun: menu.sun,
-          nebulae: menu.nebulae,
-          resolution: menu.resolution,
-          animationSpeed: menu.animationSpeed,
-          nebulaOpacity: menu.nebulaOpacity,
-          nebulaBrightness: menu.nebulaBrightness,
-          noiseScale: menu.noiseScale
-      });
+  function setUrl() {
+    var queryString = qs.stringify({
+      seed: menu.seed,
+      fov: menu.fov,
+      pointStars: menu.pointStars,
+      pointStarsPercent: menu.pointStarsPercent,
+      stars: menu.stars,
+      starsAmount: menu.starsAmount,
+      sun: menu.sun,
+      nebulae: menu.nebulae,
+      resolution: menu.resolution,
+      animationSpeed: menu.animationSpeed,
+      nebulaOpacity: menu.nebulaOpacity,
+      nebulaBrightness: menu.nebulaBrightness,
+      noiseScale: menu.noiseScale
+    });
 
-      try {
-        history.replaceState(null, "", "#" + queryString);
-      } catch (e) {
-        location.hash = queryString;
-      }
+    var url = new URL(window.location.href);
+    url.hash = queryString;
+    menu.url = url.toString();
   }
 
   var hideControls = false;
 
-  window.onkeypress = function(e) {
+  window.onkeypress = function (e) {
     if (e.charCode == 32) {
       hideControls = !hideControls;
     }
@@ -163,41 +168,42 @@ window.onload = function() {
 
   function renderTextures() {
     var textures = space.render({
-        seed: menu.seed,
-        pointStars: menu.pointStars,
-        stars: menu.stars,
-        sun: menu.sun,
-        nebulae: menu.nebulae,
-        unifiedTexture: menu.unifiedTexture,
-        resolution: menu.resolution,
-        nebulaOpacity: menu.nebulaOpacity/100.0,
-        nebulaBrightness: menu.nebulaBrightness/100.0,
-        noiseScale: 4.0 * ((menu.noiseScale/100.0) - 0.5)
+      seed: menu.seed,
+      pointStars: menu.pointStars,
+      pointStarsPercent: menu.pointStarsPercent / 100.0,
+      stars: menu.stars,
+      starsAmount: menu.starsAmount,
+      sun: menu.sun,
+      nebulae: menu.nebulae,
+      resolution: menu.resolution,
+      nebulaOpacity: menu.nebulaOpacity / 100.0,
+      nebulaBrightness: menu.nebulaBrightness / 100.0,
+      noiseScale: 4.0 * ((menu.noiseScale / 100.0) - 0.5)
     });
     skybox.setTextures(textures);
     var canvas = document.getElementById("texture-canvas");
     canvas.width = 4 * menu.resolution;
     canvas.height = 3 * menu.resolution;
     var ctx = canvas.getContext("2d");
-    ctx.drawImage(textures.left,   menu.resolution * 0, menu.resolution * 1);
-    ctx.drawImage(textures.right,  menu.resolution * 2, menu.resolution * 1);
-    ctx.drawImage(textures.front,  menu.resolution * 1, menu.resolution * 1);
-    ctx.drawImage(textures.back,   menu.resolution * 3, menu.resolution * 1);
-    ctx.drawImage(textures.top,    menu.resolution * 1, menu.resolution * 0);
+    ctx.drawImage(textures.left, menu.resolution * 0, menu.resolution * 1);
+    ctx.drawImage(textures.right, menu.resolution * 2, menu.resolution * 1);
+    ctx.drawImage(textures.front, menu.resolution * 1, menu.resolution * 1);
+    ctx.drawImage(textures.back, menu.resolution * 3, menu.resolution * 1);
+    ctx.drawImage(textures.top, menu.resolution * 1, menu.resolution * 0);
     ctx.drawImage(textures.bottom, menu.resolution * 1, menu.resolution * 2);
 
     function drawIndividual(source, targetid) {
-        var canvas = document.getElementById(targetid);
-        canvas.width = canvas.height = menu.resolution;
-        var ctx = canvas.getContext("2d");
-        ctx.drawImage(source, 0, 0);
+      var canvas = document.getElementById(targetid);
+      canvas.width = canvas.height = menu.resolution;
+      var ctx = canvas.getContext("2d");
+      ctx.drawImage(source, 0, 0);
     }
 
-    drawIndividual(textures.left,   "texture-left");
-    drawIndividual(textures.right,  "texture-right");
-    drawIndividual(textures.front,  "texture-front");
-    drawIndividual(textures.back,   "texture-back");
-    drawIndividual(textures.top,    "texture-top");
+    drawIndividual(textures.left, "texture-left");
+    drawIndividual(textures.right, "texture-right");
+    drawIndividual(textures.front, "texture-front");
+    drawIndividual(textures.back, "texture-back");
+    drawIndividual(textures.top, "texture-top");
     drawIndividual(textures.bottom, "texture-bottom");
   }
 
@@ -238,9 +244,9 @@ window.onload = function() {
 
     skybox.render(view, projection);
 
-    requestAnimationFrame(render);
+    setUrl();
 
-    setQueryString();
+    requestAnimationFrame(render);
   }
 
   render();
