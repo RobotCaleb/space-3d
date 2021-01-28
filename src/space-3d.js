@@ -146,7 +146,7 @@ module.exports = function () {
         pos: randomVec3(rand),
         color: [rand.random(), rand.random(), rand.random()],
         size: rand.random() * 0.0001 + 0.0001,
-        falloff: rand.random() * 16.0 + 8.0,
+        falloff: params.sunFalloff,
       });
     }
 
@@ -189,7 +189,7 @@ module.exports = function () {
     for (var i = 0; i < keys.length; i++) {
 
       // Clear the context.
-      self.gl.clearColor(0.05, 0.10, 0.10, 1);
+      self.gl.clearColor(0, 0, 0, 1);
       self.gl.clear(self.gl.COLOR_BUFFER_BIT);
 
       // Look in the direection for this texture.

@@ -28,10 +28,11 @@ window.onload = function () {
     this.stars = params.stars === undefined ? true : params.stars === "true";
     this.starsAmount = params.starsAmount === undefined ? 25.0 : parseFloat(params.starsAmount);
     this.sun = params.sun === undefined ? true : params.sun === "true";
+    this.sunFalloff = params.sunFalloff === undefined ? 100 : parseFloat(params.sunFalloff);
     this.nebulae = params.nebulae === undefined ? true : params.nebulae === "true";
-    this.nebulaOpacity = params.nebulaOpacity === undefined ? 100 : parseInt(params.nebulaOpacity);
-    this.noiseScale = params.nebulaOpacity === undefined ? 50 : parseFloat(params.noiseScale);
-    this.nebulaBrightness = params.nebulaBrightness === undefined ? 50 : parseInt(params.nebulaBrightness);
+    this.nebulaOpacity = params.nebulaOpacity === undefined ? 33 : parseInt(params.nebulaOpacity);
+    this.noiseScale = params.nebulaOpacity === undefined ? 5 : parseFloat(params.noiseScale);
+    this.nebulaBrightness = params.nebulaBrightness === undefined ? 18 : parseInt(params.nebulaBrightness);
     this.resolution = parseInt(params.resolution) || 512;
     this.animationSpeed = params.animationSpeed === undefined ? 1.0 : parseFloat(params.animationSpeed);
     this.url = window.location.href.toString();
@@ -89,6 +90,7 @@ window.onload = function () {
   gui.add(menu, "stars").name("Bright stars").onFinishChange(renderTextures);
   gui.add(menu, "starsAmount").name("Bright stars Amount").onFinishChange(renderTextures);
   gui.add(menu, "sun").name("Sun").onFinishChange(renderTextures);
+  gui.add(menu, "sunFalloff", 50, 250, 1).name("Sun Falloff").onFinishChange(renderTextures);
   gui.add(menu, "nebulae").name("Nebulae").onFinishChange(renderTextures);
   gui.add(menu, "nebulaOpacity", 0, 100).name("nebulaOpacity").onFinishChange(renderTextures);
   gui.add(menu, "nebulaBrightness", 0, 100).name("nebulaBrightness").onFinishChange(renderTextures);
@@ -138,6 +140,7 @@ window.onload = function () {
       stars: menu.stars,
       starsAmount: menu.starsAmount,
       sun: menu.sun,
+      sunFalloff: menu.sunFalloff,
       nebulae: menu.nebulae,
       resolution: menu.resolution,
       animationSpeed: menu.animationSpeed,
@@ -174,6 +177,7 @@ window.onload = function () {
       stars: menu.stars,
       starsAmount: menu.starsAmount,
       sun: menu.sun,
+      sunFalloff: menu.sunFalloff,
       nebulae: menu.nebulae,
       resolution: menu.resolution,
       nebulaOpacity: menu.nebulaOpacity / 100.0,
